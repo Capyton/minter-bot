@@ -1,11 +1,10 @@
 import { Bot } from 'grammy';
 import * as dotenv from 'dotenv';
-import { helpHandler } from 'handlers';
-import { Context } from 'types';
+import { baseFlowMenu } from '@/menus';
+import { helpHandler } from '@/handlers';
+import { Context } from '@/types';
 
-const config = dotenv.config();
-
-console.log(config);
+dotenv.config();
 
 const BOT_TOKEN = process.env.BOT_TOKEN ?? '';
 const ADMIN_ID = process.env.ADMIN_ID;
@@ -19,6 +18,8 @@ bot.use(async (ctx, next) => {
 
   await next();
 });
+
+bot.use(baseFlowMenu);
 
 bot.command(['help', 'start'], helpHandler);
 
