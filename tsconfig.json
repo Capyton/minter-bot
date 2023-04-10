@@ -2,16 +2,15 @@
   "compilerOptions": {
     "target": "es2016",
     "module": "commonjs",
-    "baseUrl": ".",
+    "baseUrl": "src",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "handlers": ["./src/handlers"],
-      "types": ["./src/types"]
+      "@/*": ["*"],
     },
     "strict": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.d.ts"]
+  "include": ["**/*"]
 }

@@ -33,9 +33,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@grammyjs/menu": "^1.1.3",
     "grammy": "^1.15.3"
-  },
-  "imports": {
-    "handlers": "./src/handlers"
   }
 }

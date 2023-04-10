@@ -1,4 +1,5 @@
-import { Context } from 'types';
+import { Context } from '@/types';
+import { baseFlowMenu } from '@/menus';
 
 export const helpHandler = (ctx: Context) => {
   return ctx.reply(
@@ -19,6 +20,6 @@ You can get user's telegram id in @userinfobot if needed.
 `
 }
   `,
-    { parse_mode: 'Markdown' }
+    { reply_markup: baseFlowMenu, parse_mode: 'Markdown' }
   );
 };
