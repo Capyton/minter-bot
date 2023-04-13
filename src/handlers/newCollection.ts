@@ -19,12 +19,10 @@ export const newCollection = async (
   await conversation.wait();
 
   await ctx.reply('Enter collection name');
-  // const collectionName = await conversation.form.text();
-  await conversation.form.text();
+  const collectionName = await conversation.form.text();
 
   await ctx.reply('Enter collection description');
-  // const collectionDescription = await conversation.form.text();
-  await conversation.form.text();
+  const collectionDescription = await conversation.form.text();
 
   await ctx.reply(
     collectionMessageTemplate(collectionName, collectionDescription),
