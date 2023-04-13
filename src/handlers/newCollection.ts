@@ -1,9 +1,8 @@
 import { Context, Conversation } from '@/types';
 
-const collectionMessageTemplate = (name: string, description: string) => `
-*Collection name:* ${name}.
-*Collection description:*\n
-${description}
+const messageTemplate = (entity: string, name: string, description: string) => `
+*${entity} name:* ${name}.
+*${entity} description:*\n${description}
 `;
 
 export const newCollection = async (
@@ -25,20 +24,23 @@ export const newCollection = async (
   const collectionDescription = await conversation.form.text();
 
   await ctx.reply(
-    collectionMessageTemplate(collectionName, collectionDescription),
+    messageTemplate('Collection', collectionName, collectionDescription),
     { parse_mode: 'Markdown' }
   );
 
   await ctx.reply('Enter item name');
-  // const itemName = await conversation.form.text();
+  const itemName = await conversation.form.text();
 
   await ctx.reply('Enter item description');
-  // const itemDescription = await conversation.form.text();
-  await conversation.form.text();
+  const itemDescription = await conversation.form.text();
 
   await ctx.reply("Upload item's image");
   // const itemImage = await conversation.wait();
   await conversation.wait();
+
+  await ctx.reply(messageTemplate('Item', itemName, itemDescription), {
+    parse_mode: 'Markdown',
+  });
 
   await ctx.reply('Upload the file with addresses which must receive NFT');
   // const addressesFile = await conversation.wait();
