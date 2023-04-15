@@ -10,7 +10,10 @@
     },
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false
   },
   "include": ["**/*"]
 }
