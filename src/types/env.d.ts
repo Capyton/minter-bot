@@ -1,6 +1,6 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    readonly ADMIN_ID: number;
+    readonly ADMIN_ID: string;
     readonly BOT_TOKEN: string;
 
     readonly POSTGRES_HOST: string;

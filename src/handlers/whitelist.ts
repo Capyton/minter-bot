@@ -6,8 +6,6 @@ export const addUserToWhitelist = async (ctx: Context) => {
 
   const userId = ctx.message?.text?.split(' ')[1];
 
-  console.log(ctx.message?.text, userId, typeof userId);
-
   if (userId && userId.length === 9) {
     user.user_id = Number(userId);
 

@@ -9,8 +9,6 @@ export const loadConfigFromEnv = (): Config => {
     throw new Error('Admin id is not found');
   }
 
-  console.log(process.env);
-
   return {
     bot: {
       adminId: parseInt(process.env.ADMIN_ID),
