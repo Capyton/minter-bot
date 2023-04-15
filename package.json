@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/app.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install",
+    "lint": "npx eslint ./src --fix --ext .ts",
+    "check-types": "tsc"
   },
   "repository": {
     "type": "git",
@@ -28,6 +31,7 @@
     "eslint-import-resolver-typescript": "^3.5.5",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4"

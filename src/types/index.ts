@@ -4,13 +4,12 @@ import {
   ConversationFlavor,
 } from '@grammyjs/conversations';
 import { QueryRunner } from 'typeorm';
-
-type Config = {
-  isAdmin: boolean;
-};
+import { DatabaseWorker } from '@/db/middleware';
 
 export type Context = BaseContext & {
-  config: Config;
+  config: {
+    isAdmin: boolean;
+  };
   dbWorker: DatabaseWorker;
   queryRunner: QueryRunner;
 } & ConversationFlavor;
