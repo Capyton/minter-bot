@@ -10,8 +10,16 @@ export const newCollection = async (
   ctx: Context
 ) => {
   await ctx.reply("Upload the collection's cover image");
-  // const coverImage = await conversation.wait();
-  await conversation.wait();
+  const collectionCoverImage = await conversation.waitFor('message:photo');
+
+  const collectionCoverImageId: string = collectionCoverImage.update.message
+    .photo[collectionCoverImage.update.message.photo.length - 1]
+    .file_id as string;
+
+  const file = await ctx.api.getFile(collectionCoverImageId);
+
+  const filepath = await file.download();
+  console.log('File saved at ', filepath);
 
   await ctx.reply("Upload collection's image");
   // const image = await conversation.wait();

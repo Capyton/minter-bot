@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { conversations, createConversation } from '@grammyjs/conversations';
 import { run } from '@grammyjs/runner';
 import 'reflect-metadata';
+import { hydrateFiles } from '@grammyjs/files';
 import { baseFlowMenu } from '@/menus';
 import {
   anonymousHelpHandler,
@@ -13,7 +14,7 @@ import {
   deleteUserFromWhitelist,
   showWhitelist,
 } from '@/handlers';
-import { Context } from '@/types';
+import { Api, Context } from '@/types';
 import { adminUser, knownUser, unknownUser } from '@/filters';
 import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
@@ -36,7 +37,9 @@ async function runApp() {
 
   const dbMiddleware = new DatabaseMiddleware(dataSource);
 
-  const bot = new Bot<Context>(config.bot.token);
+  const bot = new Bot<Context, Api>(config.bot.token);
+
+  bot.api.config.use(hydrateFiles(bot.token));
 
   bot
     .use(async (ctx, next) => {
