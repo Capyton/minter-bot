@@ -11,4 +11,15 @@ const baseFlowMenu = new Menu<Context>('base-flow-menu')
     ctx.reply('Use existing collection')
   );
 
-export { baseFlowMenu };
+const existingCollectionMenu = new Menu<Context>('existing-collection-menu')
+  .text(
+    'Enter new item data',
+    async (ctx) => await ctx.reply('enter new item data convo')
+  )
+  .row()
+  .text(
+    'Use previous item data',
+    async (ctx) => await ctx.reply('use previous item data convo')
+  );
+
+export { baseFlowMenu, existingCollectionMenu };

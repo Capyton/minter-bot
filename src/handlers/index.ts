@@ -1,3 +1,3 @@
 export * from './help';
-export * from './newCollection';
+export * from './collections';
 export * from './whitelist';
