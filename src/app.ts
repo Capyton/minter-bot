@@ -15,7 +15,7 @@ import {
   showWhitelist,
 } from '@/handlers';
 import { Api, Context } from '@/types';
-import { adminUser, knownUser, unknownUser } from '@/filters';
+import { adminUser, knownUser } from '@/filters';
 import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
@@ -63,11 +63,13 @@ async function runApp() {
 
   bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
   bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);
-  bot.filter(unknownUser).command(['help', 'start'], anonymousHelpHandler);
+  bot.command(['help', 'start'], anonymousHelpHandler);
 
-  bot.filter(adminUser).command('add', addUserToWhitelist);
-  bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
-  bot.filter(adminUser).command('list', showWhitelist);
+  bot
+    .filter(adminUser)
+    .command('add', addUserToWhitelist)
+    .command('delete', deleteUserFromWhitelist)
+    .command('list', showWhitelist);
 
   bot.catch((err) => {
     console.error(`Error occurred: ${err}`);
