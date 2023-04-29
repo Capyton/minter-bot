@@ -1,6 +1,7 @@
 // TODO: Remove when file flows are ready to use
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Context, Conversation } from '@/types';
+import { downloadFile } from '@/utils';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
@@ -16,6 +17,7 @@ export const newItem = async (conversation: Conversation, ctx: Context) => {
 
   await ctx.reply("Upload item's image");
   const image = await conversation.waitFor('message:photo');
+  const pathname = await downloadFile(image, 'photo', 'itemImage');
 
   await ctx.reply(messageTemplate('Item', name, description), {
     parse_mode: 'Markdown',
@@ -31,8 +33,9 @@ export const getAddresses = async (
   await ctx.reply('Upload the file with addresses which must receive NFT');
 
   const file = await conversation.waitFor('message:document');
+  const pathname = await downloadFile(file, 'document', 'addresses');
 
-  return { file };
+  return { file, pathname };
 };
 
 export const newCollection = async (
