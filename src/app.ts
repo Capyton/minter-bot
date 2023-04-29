@@ -10,6 +10,9 @@ import {
   knownUserHelpHandler,
   adminHelpHandler,
   newCollection,
+  newItem,
+  existingCollectionNewData,
+  existingCollectionOldData,
   addUserToWhitelist,
   deleteUserFromWhitelist,
   showWhitelist,
@@ -59,6 +62,19 @@ async function runApp() {
     .use(dbMiddleware.handle.bind(dbMiddleware))
     .use(conversations())
     .use(createConversation(newCollection, 'new-collection'))
+    .use(createConversation(newItem, 'new-item'))
+    .use(
+      createConversation(
+        existingCollectionNewData,
+        'existing-collection-new-data'
+      )
+    )
+    .use(
+      createConversation(
+        existingCollectionOldData,
+        'existing-collection-old-data'
+      )
+    )
     .use(baseFlowMenu);
 
   bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
