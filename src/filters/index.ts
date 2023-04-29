@@ -7,6 +7,6 @@ export const knownUser = async (ctx: Context) => {
   const user = await ctx.queryRunner.manager.findOneBy(User, {
     user_id: ctx.from?.id,
   });
-  
+
   return Boolean(user);
 };
