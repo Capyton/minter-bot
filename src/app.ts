@@ -81,11 +81,10 @@ async function runApp() {
   bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);
   bot.command(['help', 'start'], anonymousHelpHandler);
 
-  bot
-    .filter(adminUser)
-    .command('add', addUserToWhitelist)
-    .command('delete', deleteUserFromWhitelist)
-    .command('list', showWhitelist);
+  bot.filter(adminUser).command('list', showWhitelist);
+  bot.filter(adminUser).command('list', showWhitelist);
+  bot.filter(adminUser).command('add', addUserToWhitelist);
+  bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
 
   bot.catch((err) => {
     console.error(`Error occurred: ${err}`);

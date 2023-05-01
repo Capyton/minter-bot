@@ -44,6 +44,9 @@
     "grammy": "^1.15.3",
     "pg": "^8.10.0",
     "reflect-metadata": "^0.1.13",
+    "ton": "^13.4.1",
+    "ton-core": "^0.49.0",
+    "ton-crypto": "^3.2.0",
     "typeorm": "^0.3.14"
   }
 }

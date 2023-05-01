@@ -1,7 +1,7 @@
 // TODO: Remove when file flows are ready to use
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Context, Conversation } from '@/types';
-import { downloadFile } from '@/utils';
+import { downloadFile } from '@/utils/files';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
