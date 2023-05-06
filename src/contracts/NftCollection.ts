@@ -1,3 +1,4 @@
+import { TonClient } from 'ton';
 import {
   Address,
   Cell,
@@ -112,6 +113,50 @@ export class NftCollection {
 
     body.storeRef(nftItemContent.endCell());
     return body.endCell();
+  }
+
+  static async getLastNftMetadata(collectionAddress: Address) {
+    const client = new TonClient({
+      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+      apiKey: process.env.TONCENTER_API_KEY,
+    });
+
+    const collectionData = await client.runMethod(
+      collectionAddress,
+      'get_collection_data'
+    );
+    const lastNftIndex = collectionData.stack.readBigNumber() - 1n;
+
+    const lastNftAddress = (
+      await client.runMethod(collectionAddress, 'get_nft_address_by_index', [
+        { type: 'int', value: lastNftIndex },
+      ])
+    ).stack.readAddress();
+
+    const lastNftData = await client.runMethod(lastNftAddress, 'get_nft_data');
+    lastNftData.stack.skip(4);
+
+    const lastNftContent = lastNftData.stack.readCell();
+
+    const nftContent = await client.runMethod(
+      collectionAddress,
+      'get_nft_content',
+      [
+        { type: 'int', value: lastNftIndex },
+        { type: 'cell', cell: lastNftContent },
+      ]
+    );
+    const commonContent = nftContent.stack.readCell().asSlice();
+    commonContent.loadUint(8);
+    commonContent.loadStringRefTail();
+
+    const metadataURL =
+      commonContent.loadStringTail() +
+      lastNftContent.beginParse().loadStringTail();
+
+    const response = await fetch(metadataURL);
+    const metadata = await response.json();
+    return metadata;
   }
 
   public get stateInit(): StateInit {
