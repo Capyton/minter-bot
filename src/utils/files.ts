@@ -1,5 +1,7 @@
 import path from 'path';
 import { escape } from 'querystring';
+import * as fs from 'fs/promises';
+import { Address } from 'ton-core';
 import download from 'download';
 import { Context } from '@/types';
 
@@ -47,4 +49,17 @@ export const downloadFile = async (
   }
 
   return pathname;
+};
+
+export const getAddressesFromFile = async (
+  filename: string
+): Promise<Set<Address>> => {
+  const addresses = new Set<Address>();
+
+  const data = await fs.readFile(filename);
+
+  for (const address of data.toString().split('\n')) {
+    addresses.add(Address.parse(address));
+  }
+  return addresses;
 };

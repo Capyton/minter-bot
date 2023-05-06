@@ -1,7 +1,8 @@
 // TODO: Remove when file flows are ready to use
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import path from 'path';
 import { Context, Conversation } from '@/types';
-import { downloadFile } from '@/utils/files';
+import { downloadFile, getAddressesFromFile } from '@/utils/files';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
@@ -34,19 +35,21 @@ export const getAddresses = async (
 
   const file = await conversation.waitFor('message:document');
   const pathname = await downloadFile(file, 'document', 'addresses');
-
-  return { file, pathname };
+  const addresses = await getAddressesFromFile(
+    path.join(pathname, 'addresses')
+  );
+  return addresses;
 };
 
 export const newCollection = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  await ctx.reply("Upload the collection's cover image");
-  const coverImage = await conversation.waitFor('message:photo');
+  // await ctx.reply("Upload the collection's cover image");
+  // const coverImage = await conversation.waitFor('message:photo');
 
-  await ctx.reply("Upload collection's image");
-  const image = await conversation.waitFor('message:photo');
+  // await ctx.reply("Upload collection's image");
+  // const image = await conversation.waitFor('message:photo');
 
   await ctx.reply('Enter collection name');
   const name = await conversation.form.text();
@@ -64,7 +67,8 @@ export const newCollection = async (
   );
 
   if (itemName && itemDescription) {
-    const { file } = await getAddresses(conversation, ctx);
+    const addresses = await getAddresses(conversation, ctx);
+    console.log(addresses);
   }
 };
 
@@ -75,7 +79,7 @@ export const existingCollectionNewData = async (
   const { name, description } = await newItem(conversation, ctx);
 
   if (name && description) {
-    const { file } = await getAddresses(conversation, ctx);
+    const addresses = await getAddresses(conversation, ctx);
 
     // TODO: mint
   }
@@ -90,7 +94,7 @@ export const existingCollectionOldData = async (
   const description = '';
 
   if (name && description) {
-    const { file } = await getAddresses(conversation, ctx);
+    const addresses = await getAddresses(conversation, ctx);
 
     // TODO: mint
   }
