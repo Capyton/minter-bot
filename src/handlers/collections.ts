@@ -66,10 +66,8 @@ export const newCollection = async (
     ctx
   );
 
-  if (itemName && itemDescription) {
-    const addresses = await getAddresses(conversation, ctx);
-    console.log(addresses);
-  }
+  const addresses = await getAddresses(conversation, ctx);
+  console.log(addresses);
 };
 
 export const existingCollectionNewData = async (
@@ -78,11 +76,9 @@ export const existingCollectionNewData = async (
 ) => {
   const { name, description } = await newItem(conversation, ctx);
 
-  if (name && description) {
-    const addresses = await getAddresses(conversation, ctx);
+  const addresses = await getAddresses(conversation, ctx);
 
-    // TODO: mint
-  }
+  // TODO: mint
 };
 
 export const existingCollectionOldData = async (
@@ -93,9 +89,7 @@ export const existingCollectionOldData = async (
   const name = '';
   const description = '';
 
-  if (name && description) {
-    const addresses = await getAddresses(conversation, ctx);
+  const addresses = await getAddresses(conversation, ctx);
 
-    // TODO: mint
-  }
+  // TODO: mint
 };
