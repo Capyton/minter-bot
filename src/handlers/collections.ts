@@ -168,8 +168,18 @@ export const newCollection = async (
     });
     i++;
   }
-  seqno = await collection.deployItemsBatch(wallet, items);
-  await waitSeqno(seqno, wallet);
+
+  const chunks = [];
+  for (let i = 0; i < addresses.size; i += 100) {
+    const chunk = items.slice(i, i + 100);
+    chunks.push(chunk);
+  }
+
+  for (const chuck of chunks) {
+    seqno = await collection.deployItemsBatch(wallet, chuck);
+    await waitSeqno(seqno, wallet);
+  }
+
   await ctx.reply(`${addresses.size} SBT items are successfully minted`);
 };
 
