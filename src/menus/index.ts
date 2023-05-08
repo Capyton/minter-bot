@@ -1,4 +1,6 @@
 import { Menu } from '@grammyjs/menu';
+import { InlineKeyboard } from 'grammy';
+import { toNano } from 'ton-core';
 import { Context } from '@/types';
 
 const baseFlowMenu = new Menu<Context>('base-flow-menu')
@@ -27,4 +29,27 @@ const existingCollectionMenu = new Menu<Context>('existing-collection-menu')
     async (ctx) => await ctx.conversation.enter('existing-collection-old-data')
   );
 
-export { baseFlowMenu };
+const confirmMintingMenu = new InlineKeyboard()
+  .text('confirm', 'confirm-minting')
+  .row()
+  .text('cancel', 'cancel-minting');
+
+const transferTONMenu = (receiver: string, amount: string) => {
+  const menu = new InlineKeyboard().url(
+    'Tonkeeper',
+    `ton://transfer/${receiver}?amount=${toNano(amount)}`
+  );
+  return menu;
+};
+
+const transactionSentMenu = new InlineKeyboard().text(
+  'I sent transaction',
+  'transaction-sent'
+);
+
+export {
+  baseFlowMenu,
+  confirmMintingMenu,
+  transferTONMenu,
+  transactionSentMenu,
+};

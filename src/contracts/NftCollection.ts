@@ -7,7 +7,9 @@ import {
   contractAddress,
   StateInit,
   SendMode,
+  toNano,
 } from 'ton-core';
+import { serializeDict } from 'ton-core/dist/dict/serializeDict';
 import { OpenedWallet } from '../utils/wallet';
 
 export type collectionData = {
@@ -17,6 +19,13 @@ export type collectionData = {
   nextItemIndex: number;
   collectionContentUrl: string;
   commonContentUrl: string;
+};
+
+export type CollectionMintItemInput = {
+  passAmount: string;
+  index: bigint;
+  ownerAddress: Address;
+  content: string;
 };
 
 export type mintParams = {
@@ -72,13 +81,33 @@ export class NftCollection {
     return seqno;
   }
 
+  public async deployItemsBatch(
+    wallet: OpenedWallet,
+    params: CollectionMintItemInput[]
+  ): Promise<number> {
+    const seqno = await wallet.contract.getSeqno();
+    await wallet.contract.sendTransfer({
+      seqno,
+      secretKey: wallet.keyPair.secretKey,
+      messages: [
+        internal({
+          value: '0.05',
+          to: this.address,
+          body: this.createBatchMintBody({ items: params }),
+        }),
+      ],
+      sendMode: SendMode.IGNORE_ERRORS + SendMode.PAY_GAS_SEPARATELY,
+    });
+    return seqno;
+  }
+
   public async topUpBalance(
     wallet: OpenedWallet,
     nftAmount: number
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
 
-    const amount = nftAmount * 0.026;
+    const amount = nftAmount * (0.035 + 0.05);
 
     await wallet.contract.sendTransfer({
       seqno,
@@ -94,6 +123,75 @@ export class NftCollection {
     });
 
     return seqno;
+  }
+
+  public async changeOwnership(
+    wallet: OpenedWallet,
+    newOwner: Address
+  ): Promise<number> {
+    const seqno = await wallet.contract.getSeqno();
+    const body = beginCell();
+
+    body.storeUint(3, 32);
+    body.storeUint(0, 64);
+    body.storeAddress(newOwner);
+
+    const amount = '0.03';
+
+    await wallet.contract.sendTransfer({
+      seqno,
+      secretKey: wallet.keyPair.secretKey,
+      messages: [
+        internal({
+          value: amount,
+          to: this.address,
+          body: body.endCell(),
+        }),
+      ],
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    });
+
+    return seqno;
+  }
+
+  public createBatchMintBody(params: {
+    items: CollectionMintItemInput[];
+  }): Cell {
+    const itemsMap = new Map<bigint, CollectionMintItemInput>();
+
+    for (const item of params.items) {
+      itemsMap.set(item.index, item);
+    }
+
+    const dictCell = beginCell();
+
+    serializeDict(
+      itemsMap,
+      64,
+      (src, cell) => {
+        const nftItemMessage = beginCell();
+
+        const itemContent = beginCell();
+        itemContent.storeStringTail(src.content);
+
+        nftItemMessage.storeAddress(src.ownerAddress);
+        nftItemMessage.storeRef(itemContent);
+        nftItemMessage.storeAddress(src.ownerAddress);
+        nftItemMessage.storeUint(0, 64);
+
+        cell.storeCoins(toNano(src.passAmount));
+        cell.storeRef(nftItemMessage);
+      },
+      dictCell
+    );
+
+    const body = beginCell();
+
+    body.storeUint(2, 32);
+    body.storeUint(0, 64);
+    body.storeRef(dictCell);
+
+    return body.endCell();
   }
 
   public createMintBody(params: mintParams): Cell {

@@ -1,8 +1,18 @@
 // TODO: Remove when file flows are ready to use
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import path from 'path';
+import { randomUUID } from 'crypto';
 import { Context, Conversation } from '@/types';
 import { downloadFile, getAddressesFromFile } from '@/utils/files';
+import {
+  confirmMintingMenu,
+  transactionSentMenu,
+  transferTONMenu,
+} from '@/menus';
+import { openWallet } from '@/utils/wallet';
+import { NftCollection } from '@/contracts/NftCollection';
+import { waitSeqno } from '@/utils/delay';
+import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
@@ -18,7 +28,6 @@ export const newItem = async (conversation: Conversation, ctx: Context) => {
 
   await ctx.reply("Upload item's image");
   const image = await conversation.waitFor('message:photo');
-  const pathname = await downloadFile(image, 'photo', 'itemImage');
 
   await ctx.reply(messageTemplate('Item', name, description), {
     parse_mode: 'Markdown',
@@ -45,11 +54,11 @@ export const newCollection = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  // await ctx.reply("Upload the collection's cover image");
-  // const coverImage = await conversation.waitFor('message:photo');
+  await ctx.reply("Upload the collection's cover image");
+  const coverImage = await conversation.waitFor('message:photo');
 
-  // await ctx.reply("Upload collection's image");
-  // const image = await conversation.waitFor('message:photo');
+  await ctx.reply("Upload collection's image");
+  const image = await conversation.waitFor('message:photo');
 
   await ctx.reply('Enter collection name');
   const name = await conversation.form.text();
@@ -61,13 +70,107 @@ export const newCollection = async (
     parse_mode: 'Markdown',
   });
 
-  const { name: itemName, description: itemDescription } = await newItem(
-    conversation,
-    ctx
-  );
+  const {
+    name: itemName,
+    description: itemDescription,
+    image: itemImage,
+  } = await newItem(conversation, ctx);
 
   const addresses = await getAddresses(conversation, ctx);
-  console.log(addresses);
+
+  const text =
+    'Please confirm minting of the new NFT collection based on this data\n' +
+    messageTemplate('Collection', name, description) +
+    '\n' +
+    messageTemplate('Item', itemName, itemDescription);
+  await ctx.reply(text, {
+    parse_mode: 'Markdown',
+    reply_markup: confirmMintingMenu,
+  });
+
+  await conversation.waitForCallbackQuery('confirm-minting');
+
+  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), true);
+  const receiverAddress = wallet.contract.address.toString();
+  const tonAmount = (addresses.size * (0.05 + 0.05) + 0.1).toFixed(3);
+
+  await ctx.reply(
+    `Now just send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> just clicking button bellow`,
+    {
+      parse_mode: 'HTML',
+      reply_markup: transferTONMenu(receiverAddress, tonAmount),
+    }
+  );
+
+  await ctx.reply('click on this button when you send the transaction', {
+    reply_markup: transactionSentMenu,
+  });
+
+  await conversation.waitForCallbackQuery('transaction-sent');
+  await ctx.reply('Start minting....');
+
+  const itemImgaeFilename = randomUUID() + '.jpg';
+  const itemImagePathname = await downloadFile(
+    itemImage,
+    'photo',
+    itemImgaeFilename
+  );
+
+  const imageFilename = randomUUID() + '.jpg';
+  const imagePathname = await downloadFile(image, 'photo', imageFilename);
+
+  const coverImageFilename = randomUUID() + '.jpg';
+  const coverImagePathname = await downloadFile(
+    coverImage,
+    'photo',
+    coverImageFilename
+  );
+
+  const commonContentUrl = await createMetadataFile(
+    {
+      name: itemName,
+      description: itemDescription,
+      imagePath: path.join(itemImagePathname, itemImgaeFilename),
+    },
+    name
+  );
+  const collectionContentUrl = await createCollectionMetadata({
+    name,
+    description,
+    imagePathname: path.join(imagePathname, imageFilename),
+    coverImagePathname: path.join(coverImagePathname, coverImageFilename),
+  });
+
+  const collectionData = {
+    ownerAddress: wallet.contract.address,
+    royaltyPercent: 0,
+    royaltyAddress: wallet.contract.address,
+    nextItemIndex: 0,
+    collectionContentUrl,
+    commonContentUrl: commonContentUrl.split('item.json')[0], // need to be rewrited
+  };
+  const collection = new NftCollection(collectionData);
+  let seqno = await collection.deploy(wallet);
+  await waitSeqno(seqno, wallet);
+  await ctx.reply(`Collection deployed to ${collection.address}`);
+
+  seqno = await collection.topUpBalance(wallet, addresses.size);
+  await waitSeqno(seqno, wallet);
+
+  const items = [];
+  let i = 0n;
+  for (const address of addresses) {
+    items.push({
+      index: i,
+      passAmount: '0.05',
+      ownerAddress: address,
+      content: 'item.json',
+    });
+    i++;
+  }
+  seqno = await collection.deployItemsBatch(wallet, items);
+  await waitSeqno(seqno, wallet);
+  await ctx.reply(`${addresses.size} SBT items are successfully minted`);
 };
 
 export const existingCollectionNewData = async (

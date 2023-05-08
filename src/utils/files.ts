@@ -3,6 +3,7 @@ import { escape } from 'querystring';
 import * as fs from 'fs/promises';
 import { Address } from 'ton-core';
 import download from 'download';
+import AWS from 'aws-sdk';
 import { Context } from '@/types';
 
 type FileType = 'document' | 'photo';
@@ -18,7 +19,6 @@ export const getFileId = (ctx: Context, type: FileType): string => {
 
   if (type === 'photo' && ctx.message?.photo) {
     const photo = ctx.message.photo.pop();
-
     return photo!.file_id;
   }
 
@@ -63,3 +63,23 @@ export const getAddressesFromFile = async (
   }
   return addresses;
 };
+
+export async function uploadFileToS3(
+  fileContent: Buffer,
+  filepath: string,
+  folder: string
+) {
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.ACCESS_KEY_ID,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY,
+  });
+  const bucketName = 'krau5-test-bucket';
+
+  const params = {
+    Bucket: bucketName,
+    Key: `${folder}/${filepath}`,
+    Body: fileContent,
+  };
+  const data = await s3.upload(params).promise();
+  return data.Location;
+}
