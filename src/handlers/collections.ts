@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { InlineKeyboard } from 'grammy';
 import { Context, Conversation } from '@/types';
 import { downloadFile, getAddressesFromFile } from '@/utils/files';
 import {
@@ -81,39 +82,45 @@ export const newCollection = async (
   const text =
     'Please confirm minting of the new NFT collection based on this data\n' +
     messageTemplate('Collection', name, description) +
-    '\n' +
     messageTemplate('Item', itemName, itemDescription);
   await ctx.reply(text, {
     parse_mode: 'Markdown',
     reply_markup: confirmMintingMenu,
   });
 
-  await conversation.waitForCallbackQuery('confirm-minting');
+  ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
   const wallet = await openWallet(process.env.MNEMONIC!.split(' '), true);
   const receiverAddress = wallet.contract.address.toString();
-  const tonAmount = (addresses.size * (0.05 + 0.05) + 0.1).toFixed(3);
+  const tonAmount = (
+    addresses.size * (0.05 + 0.035) +
+    Math.ceil(addresses.size / 100) * 0.05 +
+    0.2
+  ).toFixed(3);
 
-  await ctx.reply(
-    `Now just send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> just clicking button bellow`,
+  await ctx.editMessageText(
+    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
     {
       parse_mode: 'HTML',
       reply_markup: transferTONMenu(receiverAddress, tonAmount),
     }
   );
 
-  await ctx.reply('click on this button when you send the transaction', {
+  await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
   });
 
-  await conversation.waitForCallbackQuery('transaction-sent');
-  await ctx.reply('Start minting....');
+  ctx = await conversation.waitForCallbackQuery('transaction-sent');
+  await ctx.editMessageText('Start minting...', {
+    reply_markup: new InlineKeyboard(),
+  });
 
-  const itemImgaeFilename = randomUUID() + '.jpg';
+  // TODO: refuse to fully download files
+  const itemImageFilename = randomUUID() + '.jpg';
   const itemImagePathname = await downloadFile(
     itemImage,
     'photo',
-    itemImgaeFilename
+    itemImageFilename
   );
 
   const imageFilename = randomUUID() + '.jpg';
@@ -130,7 +137,7 @@ export const newCollection = async (
     {
       name: itemName,
       description: itemDescription,
-      imagePath: path.join(itemImagePathname, itemImgaeFilename),
+      imagePath: path.join(itemImagePathname, itemImageFilename),
     },
     name
   );
@@ -152,7 +159,10 @@ export const newCollection = async (
   const collection = new NftCollection(collectionData);
   let seqno = await collection.deploy(wallet);
   await waitSeqno(seqno, wallet);
-  await ctx.reply(`Collection deployed to ${collection.address}`);
+  await ctx.reply(
+    `Collection deployed to <a href='https://getgems.io/collection/${collection.address}'>${collection.address}</a>`,
+    { parse_mode: 'HTML' }
+  );
 
   seqno = await collection.topUpBalance(wallet, addresses.size);
   await waitSeqno(seqno, wallet);
@@ -162,7 +172,7 @@ export const newCollection = async (
   for (const address of addresses) {
     items.push({
       index: i,
-      passAmount: '0.05',
+      passAmount: '0.03',
       ownerAddress: address,
       content: 'item.json',
     });

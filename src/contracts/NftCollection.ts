@@ -107,7 +107,7 @@ export class NftCollection {
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
 
-    const amount = nftAmount * (0.035 + 0.05);
+    const amount = nftAmount * (0.035 + 0.03);
 
     await wallet.contract.sendTransfer({
       seqno,

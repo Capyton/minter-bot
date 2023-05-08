@@ -32,20 +32,19 @@ const existingCollectionMenu = new Menu<Context>('existing-collection-menu')
 const confirmMintingMenu = new InlineKeyboard()
   .text('confirm', 'confirm-minting')
   .row()
-  .text('cancel', 'cancel-minting');
+  .text('cancel', 'cancel');
 
 const transferTONMenu = (receiver: string, amount: string) => {
-  const menu = new InlineKeyboard().url(
-    'Tonkeeper',
-    `ton://transfer/${receiver}?amount=${toNano(amount)}`
-  );
+  const menu = new InlineKeyboard()
+    .url('Tonkeeper', `ton://transfer/${receiver}?amount=${toNano(amount)}`)
+    .row()
+    .text('cancel', 'cancel');
   return menu;
 };
 
-const transactionSentMenu = new InlineKeyboard().text(
-  'I sent transaction',
-  'transaction-sent'
-);
+const transactionSentMenu = new InlineKeyboard()
+  .text('I sent transaction', 'transaction-sent')
+  .row();
 
 export {
   baseFlowMenu,
