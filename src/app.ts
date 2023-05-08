@@ -16,6 +16,7 @@ import {
   addUserToWhitelist,
   deleteUserFromWhitelist,
   showWhitelist,
+  cancelHandler,
 } from '@/handlers';
 import { Api, Context } from '@/types';
 import { adminUser, knownUser } from '@/filters';
@@ -76,6 +77,7 @@ async function runApp() {
       )
     )
     .use(baseFlowMenu);
+  bot.callbackQuery('cancel', cancelHandler);
 
   bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
   bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);

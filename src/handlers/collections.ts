@@ -55,14 +55,16 @@ export const newCollection = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  await ctx.reply("Upload the collection's cover image");
+  await ctx.reply("Upload the collection's cover image:");
   const coverImage = await conversation.waitFor('message:photo');
 
-  await ctx.reply("Upload collection's image");
+  await ctx.reply("Upload collection's image:");
   const image = await conversation.waitFor('message:photo');
 
-  await ctx.reply('Enter collection name');
+  await ctx.reply('Enter collection name:');
   const name = await conversation.form.text();
+
+  // await ctx.editMessageText()  
 
   await ctx.reply('Enter collection description');
   const description = await conversation.form.text();
