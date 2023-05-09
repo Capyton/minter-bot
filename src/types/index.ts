@@ -5,18 +5,20 @@ import {
 } from '@grammyjs/conversations';
 import { QueryRunner } from 'typeorm';
 import { FileApiFlavor, FileFlavor } from '@grammyjs/files';
+import { HydrateFlavor } from '@grammyjs/hydrate';
 import { DatabaseWorker } from '@/db/middleware';
 
-export type Context = FileFlavor<
-  BaseContext & {
-    config: {
-      isAdmin: boolean;
-    };
-    dbWorker: DatabaseWorker;
-    queryRunner: QueryRunner;
-  } & ConversationFlavor
+export type Context = HydrateFlavor<
+  FileFlavor<
+    BaseContext & {
+      config: {
+        isAdmin: boolean;
+      };
+      dbWorker: DatabaseWorker;
+      queryRunner: QueryRunner;
+    } & ConversationFlavor
+  >
 >;
-
 export type Api = FileApiFlavor<BaseApi>;
 
 export type Conversation = BaseConversation<Context>;

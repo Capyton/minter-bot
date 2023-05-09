@@ -1,6 +1,7 @@
 import { Bot, session } from 'grammy';
 import * as dotenv from 'dotenv';
 import { conversations, createConversation } from '@grammyjs/conversations';
+import { hydrate } from '@grammyjs/hydrate';
 import { run } from '@grammyjs/runner';
 import 'reflect-metadata';
 import { hydrateFiles } from '@grammyjs/files';
@@ -60,6 +61,7 @@ async function runApp() {
         },
       })
     )
+    .use(hydrate())
     .use(dbMiddleware.handle.bind(dbMiddleware))
     .use(conversations())
     .use(createConversation(newCollection, 'new-collection'))

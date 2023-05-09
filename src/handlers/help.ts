@@ -18,19 +18,19 @@ export const adminHelpHandler = async (ctx: Context) =>
     `
 Hey there :)
 
-*List of available commands:*
-1. \`/add <user_id>\`
+<b>List of available commands:</b>
+1. <code>/add *user_id*</code>
 Adds a user to a whitelist by telegram identifier.
 
-2. \`/delete <user_id>\`
+2. <code>/delete *user_id*</code>
 Deletes a user from a whitelist, so that he cannot use this bot.
 
-3. \`/list\`
+3. <code>/list</code>
 Shows a whitelist of users, who are able to use the bot
 
-Note: you can get user's telegram id in @userinfobot if needed.  
+Note: you can get user's telegram id in @username_to_id_bot if needed.  
   `,
-    { reply_markup: baseFlowMenu, parse_mode: 'Markdown' }
+    { reply_markup: baseFlowMenu, parse_mode: 'HTML' }
   );
 
 export const cancelHandler = async (ctx: Context) => {

@@ -3,6 +3,9 @@
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { InlineKeyboard } from 'grammy';
+import { hydrate } from '@grammyjs/hydrate';
+import { MessageXFragment } from '@grammyjs/hydrate/out/data/message';
+import { Message } from 'grammy/types';
 import { Context, Conversation } from '@/types';
 import { downloadFile, getAddressesFromFile } from '@/utils/files';
 import {
@@ -20,19 +23,32 @@ const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} description:*\n${description}
 `;
 
-export const newItem = async (conversation: Conversation, ctx: Context) => {
-  await ctx.reply('Enter item name');
-  const name = await conversation.form.text();
+export const newItem = async (
+  conversation: Conversation,
+  ctx: Context,
+  infoMsg?: Message.CommonMessage & MessageXFragment & Message,
+  infoMsgText?: string
+) => {
+  const enterItemMsg = await ctx.reply('Enter item name');
+  const nameCtx = await conversation.waitFor(':text');
 
-  await ctx.reply('Enter item description');
-  const description = await conversation.form.text();
+  const name = nameCtx.message!.text;
+  let text = `*Item name:* ${name}\n`;
+  await infoMsg!.editText(infoMsgText + text, { parse_mode: 'Markdown' });
+  await enterItemMsg.delete();
+  await nameCtx.deleteMessage();
+
+  const enterDescriptionMsg = await ctx.reply('Enter item description');
+  const descriptionCtx = await conversation.waitFor(':text');
+
+  const description = descriptionCtx.message!.text;
+  text += `*Item description:* ${description}`;
+  await infoMsg!.editText(infoMsgText + text, { parse_mode: 'Markdown' });
+  await enterDescriptionMsg.delete();
+  await descriptionCtx.deleteMessage();
 
   await ctx.reply("Upload item's image");
   const image = await conversation.waitFor('message:photo');
-
-  await ctx.reply(messageTemplate('Item', name, description), {
-    parse_mode: 'Markdown',
-  });
 
   return { name, description, image };
 };
@@ -55,29 +71,42 @@ export const newCollection = async (
   conversation: Conversation,
   ctx: Context
 ) => {
+  await conversation.run(hydrate());
+
   await ctx.reply("Upload the collection's cover image:");
   const coverImage = await conversation.waitFor('message:photo');
 
   await ctx.reply("Upload collection's image:");
   const image = await conversation.waitFor('message:photo');
 
-  await ctx.reply('Enter collection name:');
-  const name = await conversation.form.text();
+  const infoMsg = await ctx.reply('Enter collection name:');
+  const nameCtx = await conversation.waitFor(':text');
 
-  // await ctx.editMessageText()  
+  const name = nameCtx.message!.text;
+  let infoText = `*Collection name:* ${name}\n`;
 
-  await ctx.reply('Enter collection description');
-  const description = await conversation.form.text();
-
-  await ctx.reply(messageTemplate('Collection', name, description), {
+  await infoMsg.editText(infoText, {
     parse_mode: 'Markdown',
   });
+  await nameCtx.deleteMessage();
+
+  const enterCollectionMsg = await ctx.reply('Enter collection description:');
+  const descriptionCtx = await conversation.waitFor(':text');
+
+  const description = descriptionCtx.message!.text;
+  infoText += `*Collection description:* ${description}\n\n`;
+
+  await enterCollectionMsg.delete();
+  await infoMsg.editText(infoText, {
+    parse_mode: 'Markdown',
+  });
+  await descriptionCtx.deleteMessage();
 
   const {
     name: itemName,
     description: itemDescription,
     image: itemImage,
-  } = await newItem(conversation, ctx);
+  } = await newItem(conversation, ctx, infoMsg, infoText);
 
   const addresses = await getAddresses(conversation, ctx);
 
