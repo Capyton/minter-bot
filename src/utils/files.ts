@@ -59,7 +59,9 @@ export const getAddressesFromFile = async (
   const data = await fs.readFile(filename);
 
   for (const address of data.toString().split('\n')) {
-    addresses.add(Address.parse(address));
+    if (address) {
+      addresses.add(Address.parse(address));
+    }
   }
   return addresses;
 };

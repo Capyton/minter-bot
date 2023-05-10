@@ -5,7 +5,8 @@ import { randomUUID } from 'crypto';
 import { InlineKeyboard } from 'grammy';
 import { hydrate } from '@grammyjs/hydrate';
 import { MessageXFragment } from '@grammyjs/hydrate/out/data/message';
-import { Message } from 'grammy/types';
+import { type Message } from 'grammy/types';
+import { InputFile } from 'grammy';
 import { Context, Conversation } from '@/types';
 import { downloadFile, getAddressesFromFile } from '@/utils/files';
 import {
@@ -57,7 +58,10 @@ export const getAddresses = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  await ctx.reply('Upload the file with addresses which must receive NFT');
+  await ctx.replyWithDocument(new InputFile('./src/assets/example.txt'), {
+    caption:
+      'Upload the file with addresses which must receive NFT (example above)',
+  });
 
   const file = await conversation.waitFor('message:document');
   const pathname = await downloadFile(file, 'document', 'addresses');
@@ -73,11 +77,11 @@ export const newCollection = async (
 ) => {
   await conversation.run(hydrate());
 
-  await ctx.reply("Upload the collection's cover image:");
-  const coverImage = await conversation.waitFor('message:photo');
-
   await ctx.reply("Upload collection's image:");
   const image = await conversation.waitFor('message:photo');
+
+  await ctx.reply("Upload the collection's cover image:");
+  const coverImage = await conversation.waitFor('message:photo');
 
   const infoMsg = await ctx.reply('Enter collection name:');
   const nameCtx = await conversation.waitFor(':text');
@@ -121,7 +125,7 @@ export const newCollection = async (
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
-  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), true);
+  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
     addresses.size * (0.05 + 0.035) +
