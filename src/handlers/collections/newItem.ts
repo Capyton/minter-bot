@@ -6,9 +6,9 @@ const getItemImage = async (
   conversation: Conversation,
   ctx: Context
 ): Promise<Context> => {
-  const image = await conversation.waitFor('message:photo');
+  const image = await conversation.wait();
 
-  if (image.message.photo) {
+  if (image.message?.photo) {
     return image;
   }
 

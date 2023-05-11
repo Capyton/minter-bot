@@ -8,9 +8,9 @@ const getAddressesFile = async (
   conversation: Conversation,
   ctx: Context
 ): Promise<Context> => {
-  const file = await conversation.waitFor('message:document');
+  const file = await conversation.wait();
 
-  if (file.message.document) {
+  if (file.message?.document) {
     return file;
   }
 

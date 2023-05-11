@@ -23,6 +23,22 @@ const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} description:*\n${description}
 `;
 
+const getImage = async (
+  entity: string,
+  conversation: Conversation,
+  ctx: Context
+): Promise<Context> => {
+  const image = await conversation.wait();
+
+  if (image.message?.photo) {
+    return image;
+  }
+
+  await ctx.reply(`${entity} image must be an image`);
+
+  return await getImage(entity, conversation, ctx);
+};
+
 export const newCollection = async (
   conversation: Conversation,
   ctx: Context
@@ -30,10 +46,10 @@ export const newCollection = async (
   await conversation.run(hydrate());
 
   await ctx.reply("Upload collection's image:");
-  const image = await conversation.waitFor('message:photo');
+  const image = await getImage('Collection', conversation, ctx);
 
   await ctx.reply("Upload the collection's cover image:");
-  const coverImage = await conversation.waitFor('message:photo');
+  const coverImage = await getImage("Collection's cover", conversation, ctx);
 
   const infoMsg = await ctx.reply('Enter collection name:');
   const nameCtx = await conversation.waitFor(':text');
