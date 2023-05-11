@@ -45,10 +45,14 @@ export const newCollection = async (
 ) => {
   await conversation.run(hydrate());
 
-  await ctx.reply("Upload collection's image:");
+  await ctx.reply(
+    "Upload collection's image:\n\nRecommended image size: a square between 400x400 and 1000x1000 pixels. Format: png, jpg, webp, svg."
+  );
   const image = await getImage('Collection', conversation, ctx);
 
-  await ctx.reply("Upload the collection's cover image:");
+  await ctx.reply(
+    "Upload the collection's cover image:\nRecommended image size: 2880x680 pixels.\nRecommended Format: png, jpg, webp, svg."
+  );
   const coverImage = await getImage("Collection's cover", conversation, ctx);
 
   const infoMsg = await ctx.reply('Enter collection name:');
