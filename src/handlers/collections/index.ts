@@ -9,6 +9,7 @@ import { Context, Conversation } from '@/types';
 import { downloadFile } from '@/utils/files';
 import { mintCollection } from '@/utils/mintCollection';
 import {
+  baseFlowMenu,
   confirmMintingMenu,
   transactionSentMenu,
   transferTONMenu,
@@ -57,12 +58,12 @@ export const newCollection = async (
   await conversation.run(hydrate());
 
   await ctx.reply(
-    "Upload collection's image:\n\nRecommended image size: a square between 400x400 and 1000x1000 pixels. Format: png, jpg, webp, svg."
+    "Upload collection's image:\n\nRecommended image size: a square between 400x400 and 1000x1000 pixels.\nnRecommended format: png, jpg, webp, svg."
   );
   const image = await getImage('Collection', conversation, ctx);
 
   await ctx.reply(
-    "Upload the collection's cover image:\nRecommended image size: 2880x680 pixels.\nRecommended Format: png, jpg, webp, svg.",
+    "Upload the collection's cover image:\n\nRecommended image size: 2880x680 pixels.\nRecommended format: png, jpg, webp, svg.",
     {
       reply_markup: new InlineKeyboard().text(
         'Same as the collection message',
@@ -188,6 +189,10 @@ export const newCollection = async (
   };
 
   await mintCollection(ctx, { collectionData, wallet, addresses });
+
+  await ctx.reply('Would you like to continue?', {
+    reply_markup: baseFlowMenu,
+  });
 };
 
 export const existingCollectionNewData = async (
