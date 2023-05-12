@@ -88,6 +88,9 @@ async function runApp() {
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
 
+  bot.filter(adminUser, adminHelpHandler);
+  bot.filter(knownUser, knownUserHelpHandler);
+
   bot.catch((err) => {
     console.error(`Error occurred: ${err}`);
   });
