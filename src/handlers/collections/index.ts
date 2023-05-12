@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { InlineKeyboard, InputFile } from 'grammy';
+import { InlineKeyboard } from 'grammy';
 import { hydrate } from '@grammyjs/hydrate';
 
 import { Context, Conversation } from '@/types';
@@ -26,9 +26,20 @@ const messageTemplate = (entity: string, name: string, description: string) => `
 const getImage = async (
   entity: string,
   conversation: Conversation,
-  ctx: Context
+  ctx: Context,
+  collectionImage?: Context
 ): Promise<Context> => {
   const image = await conversation.wait();
+
+  if (image.callbackQuery?.data === 'collection-as-cover' && collectionImage) {
+    await image.callbackQuery.message?.delete();
+
+    await ctx.reply(
+      "Collection's cover image will be the same as the collection image"
+    );
+
+    return collectionImage;
+  }
 
   if (image.message?.photo) {
     return image;
@@ -36,7 +47,7 @@ const getImage = async (
 
   await ctx.reply(`${entity} image must be an image`);
 
-  return await getImage(entity, conversation, ctx);
+  return await getImage(entity, conversation, ctx, collectionImage);
 };
 
 export const newCollection = async (
@@ -51,9 +62,21 @@ export const newCollection = async (
   const image = await getImage('Collection', conversation, ctx);
 
   await ctx.reply(
-    "Upload the collection's cover image:\nRecommended image size: 2880x680 pixels.\nRecommended Format: png, jpg, webp, svg."
+    "Upload the collection's cover image:\nRecommended image size: 2880x680 pixels.\nRecommended Format: png, jpg, webp, svg.",
+    {
+      reply_markup: new InlineKeyboard().text(
+        'Same as the collection message',
+        'collection-as-cover'
+      ),
+    }
   );
-  const coverImage = await getImage("Collection's cover", conversation, ctx);
+
+  const coverImage = await getImage(
+    "Collection's cover",
+    conversation,
+    ctx,
+    image
+  );
 
   const infoMsg = await ctx.reply('Enter collection name:');
   const nameCtx = await conversation.waitFor(':text');
