@@ -34,6 +34,7 @@ Note: you can get user's telegram id in @username_to_id_bot if needed.
   );
 
 export const cancelHandler = async (ctx: Context) => {
+  await ctx.conversation.exit();
   await ctx.deleteMessage();
-  await ctx.reply('Canceled.');
+  await ctx.reply('Canceled.', { reply_markup: baseFlowMenu });
 };

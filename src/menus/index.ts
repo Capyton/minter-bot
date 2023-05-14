@@ -1,33 +1,17 @@
-import { Menu } from '@grammyjs/menu';
 import { InlineKeyboard } from 'grammy';
 import { toNano } from 'ton-core';
-import { Context } from '@/types';
 
-const baseFlowMenu = new Menu<Context>('base-flow-menu')
-  .text(
-    'Create new collection',
-    async (ctx) => await ctx.conversation.enter('new-collection')
-  )
+const baseFlowMenu = new InlineKeyboard()
+  .text('Create new collection', 'new-collection')
   .row()
-  .text(
-    'Use existing collection',
-    async (ctx) =>
-      await ctx.reply(
-        'Do you want to mint an item using previously entered data or you want to update the data?',
-        { reply_markup: existingCollectionMenu }
-      )
-  );
+  .text('Use existing collection', 'existing-collection')
+  .row()
+  .text('Cancel', 'cancel');
 
-const existingCollectionMenu = new Menu<Context>('existing-collection-menu')
-  .text(
-    'Enter new item data',
-    async (ctx) => await ctx.conversation.enter('existing-collection-new-data')
-  )
+const existingCollectionMenu = new InlineKeyboard()
+  .text('Enter new item data', 'existing-collection-new-data')
   .row()
-  .text(
-    'Use previous item data',
-    async (ctx) => await ctx.conversation.enter('existing-collection-old-data')
-  );
+  .text('Use previous item data', 'existing-collection-old-data');
 
 const confirmMintingMenu = new InlineKeyboard()
   .text('confirm', 'confirm-minting')
@@ -42,6 +26,8 @@ const transferTONMenu = (receiver: string, amount: string) => {
   return menu;
 };
 
+const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');
+
 const transactionSentMenu = new InlineKeyboard()
   .text('I sent transaction', 'transaction-sent')
   .row();
@@ -51,4 +37,6 @@ export {
   confirmMintingMenu,
   transferTONMenu,
   transactionSentMenu,
+  existingCollectionMenu,
+  cancelMenu,
 };

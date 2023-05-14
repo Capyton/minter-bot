@@ -27,10 +27,10 @@ export const newItem = async (
 
   const nameContext = await conversation.waitFor(':text');
   const name = nameContext.message!.text ?? '';
-  let text = `*Item name:* ${name}\n`;
+  let text = `<b>Item name:</b> ${name}\n`;
 
   await infoMessage!.editText(infoMessageText + text, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
   });
 
   await enterItemMessage.delete();
@@ -40,10 +40,10 @@ export const newItem = async (
   const descriptionContext = await conversation.waitFor(':text');
 
   const description = descriptionContext.message!.text ?? '';
-  text += `*Item description:* ${description}`;
+  text += `<b>Item description:</b> ${description}`;
 
   await infoMessage!.editText(infoMessageText + text, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
   });
   await enterDescriptionMsg.delete();
   await descriptionContext.deleteMessage();

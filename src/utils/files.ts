@@ -75,7 +75,7 @@ export async function uploadFileToS3(
     accessKeyId: process.env.ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
   });
-  const bucketName = 'krau5-test-bucket';
+  const bucketName = process.env.BUCKET_NAME!;
 
   const params = {
     Bucket: bucketName,

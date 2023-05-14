@@ -5,17 +5,20 @@ import { randomUUID } from 'crypto';
 import { InlineKeyboard } from 'grammy';
 import { hydrate } from '@grammyjs/hydrate';
 
+import { Address } from 'ton-core';
 import { Context, Conversation } from '@/types';
 import { downloadFile } from '@/utils/files';
-import { mintCollection } from '@/utils/mintCollection';
+import { mintCollection, mintItems } from '@/utils/mintCollection';
 import {
   baseFlowMenu,
+  cancelMenu,
   confirmMintingMenu,
   transactionSentMenu,
   transferTONMenu,
 } from '@/menus';
 import { openWallet } from '@/utils/wallet';
 import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
+import { NftCollection } from '@/contracts/NftCollection';
 import { getAddresses } from './getAddresses';
 import { newItem } from './newItem';
 
@@ -23,6 +26,30 @@ const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
 *${entity} description:*\n${description}
 `;
+
+const getAddress = async (
+  ctx: Context,
+  conversation: Conversation
+): Promise<Address> => {
+  await ctx.reply('Enter collection address: ', {
+    reply_markup: cancelMenu,
+  });
+
+  const collection = await conversation.waitFor(':text');
+
+  let collectionAddress;
+  try {
+    collectionAddress = Address.parse(collection.message!.text);
+  } catch {
+    await ctx.reply(
+      'Check the correctness of the entered address and try again.',
+      { reply_markup: cancelMenu }
+    );
+    return await getAddress(ctx, conversation);
+  }
+  await collection.deleteMessage();
+  return collectionAddress;
+};
 
 const getImage = async (
   entity: string,
@@ -57,8 +84,9 @@ export const newCollection = async (
 ) => {
   await conversation.run(hydrate());
 
-  await ctx.reply(
-    "Upload collection's image:\n\nRecommended image size: a square between 400x400 and 1000x1000 pixels.\nnRecommended format: png, jpg, webp, svg."
+  await ctx.editMessageText(
+    "Upload collection's image:\n\nRecommended image size: a square between 400x400 and 1000x1000 pixels.\nRecommended format: png, jpg, webp, svg.",
+    { reply_markup: cancelMenu }
   );
   const image = await getImage('Collection', conversation, ctx);
 
@@ -124,7 +152,7 @@ export const newCollection = async (
   const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
-    addresses.size * (0.05 + 0.035) +
+    addresses.size * (0.035 + 0.03) +
     Math.ceil(addresses.size / 100) * 0.05 +
     0.2
   ).toFixed(3);
@@ -185,10 +213,16 @@ export const newCollection = async (
     royaltyAddress: wallet.contract.address,
     nextItemIndex: 0,
     collectionContentUrl,
-    commonContentUrl: commonContentUrl.split('item.json')[0], // need to be rewritten
+    commonContentUrl: commonContentUrl.split('item.json')[0],
   };
 
-  await mintCollection(ctx, { collectionData, wallet, addresses });
+  const collection = await mintCollection(ctx, {
+    collectionData,
+    wallet,
+    addresses,
+  });
+
+  await mintItems(ctx, wallet, addresses, collection.address);
 
   await ctx.reply('Would you like to continue?', {
     reply_markup: baseFlowMenu,
@@ -199,22 +233,154 @@ export const existingCollectionNewData = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  const { name, description } = await newItem(conversation, ctx);
+  await conversation.run(hydrate());
+
+  await ctx.deleteMessage();
+
+  const collectionAddress = await getAddress(ctx, conversation);
+
+  const infoTxt = `<b>Collection address:<b> <code>${collectionAddress.toString(
+    { urlSafe: true, bounceable: true, testOnly: true }
+  )}</code>\n`;
+
+  const infoMsg = await ctx.reply(infoTxt, { parse_mode: 'HTML' });
+
+  const { name, description, image } = await newItem(
+    conversation,
+    ctx,
+    infoMsg,
+    infoTxt
+  );
 
   const addresses = await getAddresses(conversation, ctx);
 
-  // TODO: mint
+  const text =
+    'Please confirm minting of the new SBT Items based on this data\n' +
+    messageTemplate('Item', name, description);
+  await ctx.reply(text, {
+    parse_mode: 'Markdown',
+    reply_markup: confirmMintingMenu,
+  });
+
+  ctx = await conversation.waitForCallbackQuery('confirm-minting');
+
+  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
+  const receiverAddress = wallet.contract.address.toString();
+  const tonAmount = (
+    addresses.size * (0.035 + 0.03) +
+    Math.ceil(addresses.size / 100) * 0.05 +
+    0.2
+  ).toFixed(3);
+
+  await ctx.editMessageText(
+    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    {
+      parse_mode: 'HTML',
+      reply_markup: transferTONMenu(receiverAddress, tonAmount),
+    }
+  );
+
+  await ctx.reply('Click this button when you send the transaction', {
+    reply_markup: transactionSentMenu,
+  });
+
+  ctx = await conversation.waitForCallbackQuery('transaction-sent');
+  await ctx.editMessageText('Start minting...', {
+    reply_markup: new InlineKeyboard(),
+  });
+
+  const imageFilename = randomUUID() + '.jpg';
+  const imagePathname = await downloadFile(image, 'photo', imageFilename);
+
+  const collectionName = await NftCollection.getName(collectionAddress);
+
+  const metadataFilename = randomUUID() + '.json';
+  await createMetadataFile(
+    {
+      name: name,
+      description: description,
+      imagePath: path.join(imagePathname, imageFilename),
+    },
+    collectionName,
+    randomUUID() + '.jpg',
+    metadataFilename
+  );
+  const nextItemIndex =
+    (await NftCollection.getLastNftIndex(collectionAddress)) + 1n;
+
+  await mintItems(
+    ctx,
+    wallet,
+    addresses,
+    collectionAddress,
+    nextItemIndex,
+    metadataFilename
+  );
+
+  await ctx.reply('Would you like to continue?', {
+    reply_markup: baseFlowMenu,
+  });
 };
 
 export const existingCollectionOldData = async (
   conversation: Conversation,
   ctx: Context
 ) => {
-  // TODO: get old data
-  const name = '';
-  const description = '';
+  await conversation.run(hydrate());
+
+  const collectionAddress = await getAddress(ctx, conversation);
+
+  const fetchingLastNftMetadataMsg = await ctx.reply(
+    'Fetching information about last nft...'
+  );
+  const { description, name, image } = await NftCollection.getLastNftMetadata(
+    collectionAddress
+  );
+  const nextItemIndex =
+    (await NftCollection.getLastNftIndex(collectionAddress)) + 1n;
+
+  await fetchingLastNftMetadataMsg.delete();
+
+  const text =
+    'Please confirm minting of the new SBT Items based on this data\n' +
+    messageTemplate('Item', name, description);
+
+  await ctx.replyWithPhoto(image, {
+    caption: text,
+    parse_mode: 'Markdown',
+    reply_markup: confirmMintingMenu,
+  });
+  ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
   const addresses = await getAddresses(conversation, ctx);
 
-  // TODO: mint
+  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
+  const receiverAddress = wallet.contract.address.toString();
+  const tonAmount = (
+    addresses.size * (0.035 + 0.03) +
+    Math.ceil(addresses.size / 100) * 0.05 +
+    0.2
+  ).toFixed(3);
+
+  await ctx.reply(
+    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    {
+      parse_mode: 'HTML',
+      reply_markup: transferTONMenu(receiverAddress, tonAmount),
+    }
+  );
+
+  await ctx.reply('Click this button when you send the transaction', {
+    reply_markup: transactionSentMenu,
+  });
+
+  ctx = await conversation.waitForCallbackQuery('transaction-sent');
+  await ctx.editMessageText('Start minting...', {
+    reply_markup: new InlineKeyboard(),
+  });
+
+  await mintItems(ctx, wallet, addresses, collectionAddress, nextItemIndex);
+  await ctx.reply('Would you like to continue?', {
+    reply_markup: baseFlowMenu,
+  });
 };

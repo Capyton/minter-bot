@@ -5,7 +5,7 @@ import { hydrate } from '@grammyjs/hydrate';
 import { run } from '@grammyjs/runner';
 import 'reflect-metadata';
 import { hydrateFiles } from '@grammyjs/files';
-import { baseFlowMenu } from '@/menus';
+import { existingCollectionMenu } from '@/menus';
 import {
   anonymousHelpHandler,
   knownUserHelpHandler,
@@ -62,7 +62,16 @@ async function runApp() {
     )
     .use(hydrate())
     .use(dbMiddleware.handle.bind(dbMiddleware))
-    .use(conversations())
+    .use(conversations());
+
+  bot.callbackQuery('cancel', cancelHandler);
+  bot.command('cancel', cancelHandler);
+
+  bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
+  bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);
+  bot.command(['help', 'start'], anonymousHelpHandler);
+
+  bot
     .use(createConversation(newCollection, 'new-collection'))
     .use(
       createConversation(
@@ -75,18 +84,34 @@ async function runApp() {
         existingCollectionOldData,
         'existing-collection-old-data'
       )
-    )
-    .use(baseFlowMenu);
-  bot.callbackQuery('cancel', cancelHandler);
-
-  bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
-  bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);
-  bot.command(['help', 'start'], anonymousHelpHandler);
+    );
 
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
+
+  bot.callbackQuery(
+    'new-collection',
+    async (ctx) => await ctx.conversation.enter('new-collection')
+  );
+
+  bot.callbackQuery(
+    'existing-collection',
+    async (ctx) =>
+      await ctx.editMessageText(
+        'Do you want to mint an item using previously entered data or you want to update the data?',
+        { reply_markup: existingCollectionMenu }
+      )
+  );
+  bot.callbackQuery(
+    'existing-collection-new-data',
+    async (ctx) => await ctx.conversation.enter('existing-collection-new-data')
+  );
+  bot.callbackQuery(
+    'existing-collection-old-data',
+    async (ctx) => await ctx.conversation.enter('existing-collection-old-data')
+  );
 
   bot.filter(adminUser, adminHelpHandler);
   bot.filter(knownUser, knownUserHelpHandler);

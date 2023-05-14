@@ -16,12 +16,14 @@ type ItemMetadata = {
 
 export async function createMetadataFile(
   itemsData: ItemMetadata,
-  collectionName: string
+  collectionName: string,
+  itemImageFilename = 'itemImage.jpg',
+  metadataFilename = 'item.json'
 ) {
   const imageContent = await readFile(itemsData.imagePath);
   const itemPhoto = await uploadFileToS3(
     imageContent,
-    'itemImage.jpg',
+    itemImageFilename,
     collectionName
   );
   const metadata = {
@@ -32,7 +34,7 @@ export async function createMetadataFile(
   const metadataContent = Buffer.from(JSON.stringify(metadata));
   const fileURL = await uploadFileToS3(
     metadataContent,
-    'item.json',
+    metadataFilename,
     collectionName
   );
   return fileURL;

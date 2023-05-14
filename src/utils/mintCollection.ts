@@ -1,11 +1,11 @@
 import { Address } from 'ton-core';
-import { collectionData, NftCollection } from '@/contracts/NftCollection';
+import { CollectionData, NftCollection } from '@/contracts/NftCollection';
 import { waitSeqno } from '@/utils/delay';
 import { OpenedWallet } from '@/utils/wallet';
 import { Context } from '@/types';
 
 type Props = {
-  collectionData: collectionData;
+  collectionData: CollectionData;
   wallet: OpenedWallet;
   addresses: Set<Address>;
 };
@@ -13,7 +13,7 @@ type Props = {
 export const mintCollection = async (
   ctx: Context,
   { collectionData, wallet, addresses }: Props
-) => {
+): Promise<NftCollection> => {
   const collection = new NftCollection(collectionData);
 
   let seqno = await collection.deploy(wallet);
@@ -24,19 +24,34 @@ export const mintCollection = async (
     { parse_mode: 'HTML' }
   );
 
-  seqno = await collection.topUpBalance(wallet, addresses.size);
+  seqno = await NftCollection.topUpBalance(
+    wallet,
+    addresses.size,
+    collection.address
+  );
   await waitSeqno(seqno, wallet);
 
+  return collection;
+};
+
+export const mintItems = async (
+  ctx: Context,
+  wallet: OpenedWallet,
+  addresses: Set<Address>,
+  collectionAddress: Address,
+  startIndex = 0n,
+  contentUrl = 'item.json'
+) => {
   const items = [];
 
-  let i = 0n;
+  let i = startIndex;
 
   for (const address of addresses) {
     items.push({
       index: i,
       passAmount: '0.03',
       ownerAddress: address,
-      content: 'item.json',
+      content: contentUrl,
     });
     i++;
   }
@@ -49,8 +64,19 @@ export const mintCollection = async (
     chunks.push(chunk);
   }
 
+  const seqno = await NftCollection.topUpBalance(
+    wallet,
+    addresses.size,
+    collectionAddress
+  );
+  await waitSeqno(seqno, wallet);
+
   for (const chuck of chunks) {
-    seqno = await collection.deployItemsBatch(wallet, chuck);
+    const seqno = await NftCollection.deployItemsBatch(
+      wallet,
+      chuck,
+      collectionAddress
+    );
     await waitSeqno(seqno, wallet);
   }
 
