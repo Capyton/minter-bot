@@ -8,8 +8,9 @@ import {
   StateInit,
   SendMode,
   toNano,
+  Dictionary,
+  DictionaryValue,
 } from 'ton-core';
-import { serializeDict } from 'ton-core/dist/dict/serializeDict';
 import { OpenedWallet } from '../utils/wallet';
 
 export type CollectionData = {
@@ -23,9 +24,36 @@ export type CollectionData = {
 
 export type CollectionMintItemInput = {
   passAmount: string;
-  index: bigint;
+  index: number;
   ownerAddress: Address;
   content: string;
+};
+
+const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
+  serialize(src, builder) {
+    const nftItemMessage = beginCell();
+
+    const itemContent = beginCell();
+    itemContent.storeStringTail(src.content);
+
+    nftItemMessage.storeAddress(src.ownerAddress);
+    nftItemMessage.storeRef(itemContent);
+    nftItemMessage.storeAddress(src.ownerAddress);
+    nftItemMessage.storeUint(0, 64);
+
+    builder.storeCoins(toNano(src.passAmount));
+    builder.storeRef(nftItemMessage);
+  },
+
+  parse() {
+    return {
+      passAmount: '',
+      index: 0,
+      content: '',
+      ownerAddress: new Address(0, Buffer.from([])),
+      editorAddress: new Address(0, Buffer.from([])),
+    };
+  },
 };
 
 export class NftCollection {
@@ -128,10 +156,15 @@ export class NftCollection {
   }
 
   static async getName(collectionAddress: Address) {
+    const toncenterBaseEndpoint: string = process.env.TESTNET!
+      ? 'https://testnet.toncenter.com'
+      : 'https://toncenter.com';
+
     const client = new TonClient({
-      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
       apiKey: process.env.TONCENTER_API_KEY,
     });
+
     const collectionData = await client.runMethod(
       collectionAddress,
       'get_collection_data'
@@ -146,59 +179,45 @@ export class NftCollection {
   static createBatchMintBody(params: {
     items: CollectionMintItemInput[];
   }): Cell {
-    const itemsMap = new Map<bigint, CollectionMintItemInput>();
+    const itemsDict = Dictionary.empty(Dictionary.Keys.Uint(64), MintDictValue);
 
     for (const item of params.items) {
-      itemsMap.set(item.index, item);
+      itemsDict.set(item.index, item);
     }
-
-    const dictCell = beginCell();
-
-    serializeDict(
-      itemsMap,
-      64,
-      (src, cell) => {
-        const nftItemMessage = beginCell();
-
-        const itemContent = beginCell();
-        itemContent.storeStringTail(src.content);
-
-        nftItemMessage.storeAddress(src.ownerAddress);
-        nftItemMessage.storeRef(itemContent);
-        nftItemMessage.storeAddress(src.ownerAddress);
-        nftItemMessage.storeUint(0, 64);
-
-        cell.storeCoins(toNano(src.passAmount));
-        cell.storeRef(nftItemMessage);
-      },
-      dictCell
-    );
 
     const body = beginCell();
 
     body.storeUint(2, 32);
     body.storeUint(0, 64);
-    body.storeRef(dictCell);
+    body.storeDict(itemsDict);
 
     return body.endCell();
   }
 
   static async getLastNftIndex(collectionAddress: Address) {
+    const toncenterBaseEndpoint: string = process.env.TESTNET!
+      ? 'https://testnet.toncenter.com'
+      : 'https://toncenter.com';
+
     const client = new TonClient({
-      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
       apiKey: process.env.TONCENTER_API_KEY,
     });
     const collectionData = await client.runMethod(
       collectionAddress,
       'get_collection_data'
     );
-    const lastNftIndex = collectionData.stack.readBigNumber() - 1n;
+    const lastNftIndex = collectionData.stack.readNumber() - 1;
     return lastNftIndex;
   }
 
   static async getLastNftMetadata(collectionAddress: Address) {
+    const toncenterBaseEndpoint: string = process.env.TESTNET!
+      ? 'https://testnet.toncenter.com'
+      : 'https://toncenter.com';
+
     const client = new TonClient({
-      endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
       apiKey: process.env.TONCENTER_API_KEY,
     });
 
@@ -206,7 +225,7 @@ export class NftCollection {
 
     const lastNftAddress = (
       await client.runMethod(collectionAddress, 'get_nft_address_by_index', [
-        { type: 'int', value: lastNftIndex },
+        { type: 'int', value: BigInt(lastNftIndex) },
       ])
     ).stack.readAddress();
 
@@ -219,7 +238,7 @@ export class NftCollection {
       collectionAddress,
       'get_nft_content',
       [
-        { type: 'int', value: lastNftIndex },
+        { type: 'int', value: BigInt(lastNftIndex) },
         { type: 'cell', cell: lastNftContent },
       ]
     );

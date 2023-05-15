@@ -149,11 +149,14 @@ export const newCollection = async (
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
-  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
+  const wallet = await openWallet(
+    process.env.MNEMONIC!.split(' '),
+    Boolean(process.env.TESTNET!)
+  );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
     addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 100) * 0.05 +
+    Math.ceil(addresses.size / 7) * 0.05 +
     0.2
   ).toFixed(3);
 
@@ -219,7 +222,6 @@ export const newCollection = async (
   const collection = await mintCollection(ctx, {
     collectionData,
     wallet,
-    addresses,
   });
 
   await mintItems(ctx, wallet, addresses, collection.address);
@@ -239,7 +241,7 @@ export const existingCollectionNewData = async (
 
   const collectionAddress = await getAddress(ctx, conversation);
 
-  const infoTxt = `<b>Collection address:<b> <code>${collectionAddress.toString(
+  const infoTxt = `<b>Collection address:</b> <code>${collectionAddress.toString(
     { urlSafe: true, bounceable: true, testOnly: true }
   )}</code>\n`;
 
@@ -264,11 +266,14 @@ export const existingCollectionNewData = async (
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
-  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
+  const wallet = await openWallet(
+    process.env.MNEMONIC!.split(' '),
+    Boolean(process.env.TESTNET!)
+  );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
     addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 100) * 0.05 +
+    Math.ceil(addresses.size / 7) * 0.05 +
     0.2
   ).toFixed(3);
 
@@ -306,7 +311,7 @@ export const existingCollectionNewData = async (
     metadataFilename
   );
   const nextItemIndex =
-    (await NftCollection.getLastNftIndex(collectionAddress)) + 1n;
+    (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
 
   await mintItems(
     ctx,
@@ -337,7 +342,7 @@ export const existingCollectionOldData = async (
     collectionAddress
   );
   const nextItemIndex =
-    (await NftCollection.getLastNftIndex(collectionAddress)) + 1n;
+    (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
 
   await fetchingLastNftMetadataMsg.delete();
 
@@ -354,11 +359,14 @@ export const existingCollectionOldData = async (
 
   const addresses = await getAddresses(conversation, ctx);
 
-  const wallet = await openWallet(process.env.MNEMONIC!.split(' '), false);
+  const wallet = await openWallet(
+    process.env.MNEMONIC!.split(' '),
+    Boolean(process.env.TESTNET!)
+  );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
     addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 100) * 0.05 +
+    Math.ceil(addresses.size / 7) * 0.05 +
     0.2
   ).toFixed(3);
 

@@ -7,30 +7,21 @@ import { Context } from '@/types';
 type Props = {
   collectionData: CollectionData;
   wallet: OpenedWallet;
-  addresses: Set<Address>;
 };
 
 export const mintCollection = async (
   ctx: Context,
-  { collectionData, wallet, addresses }: Props
+  { collectionData, wallet }: Props
 ): Promise<NftCollection> => {
   const collection = new NftCollection(collectionData);
 
-  let seqno = await collection.deploy(wallet);
+  const seqno = await collection.deploy(wallet);
   await waitSeqno(seqno, wallet);
 
   await ctx.reply(
     `Collection deployed to <a href='https://getgems.io/collection/${collection.address}'>${collection.address}</a>`,
     { parse_mode: 'HTML' }
   );
-
-  seqno = await NftCollection.topUpBalance(
-    wallet,
-    addresses.size,
-    collection.address
-  );
-  await waitSeqno(seqno, wallet);
-
   return collection;
 };
 
@@ -39,7 +30,7 @@ export const mintItems = async (
   wallet: OpenedWallet,
   addresses: Set<Address>,
   collectionAddress: Address,
-  startIndex = 0n,
+  startIndex = 0,
   contentUrl = 'item.json'
 ) => {
   const items = [];
@@ -58,8 +49,8 @@ export const mintItems = async (
 
   const chunks = [];
 
-  for (let i = 0; i < addresses.size; i += 100) {
-    const chunk = items.slice(i, i + 100);
+  for (let i = 0; i < addresses.size; i += 6) {
+    const chunk = items.slice(i, i + 6);
 
     chunks.push(chunk);
   }
@@ -71,10 +62,11 @@ export const mintItems = async (
   );
   await waitSeqno(seqno, wallet);
 
-  for (const chuck of chunks) {
+  for (const chunk of chunks) {
+    console.log(chunk.length);
     const seqno = await NftCollection.deployItemsBatch(
       wallet,
-      chuck,
+      chunk,
       collectionAddress
     );
     await waitSeqno(seqno, wallet);
