@@ -63,7 +63,6 @@ export const mintItems = async (
   await waitSeqno(seqno, wallet);
 
   for (const chunk of chunks) {
-    console.log(chunk.length);
     const seqno = await NftCollection.deployItemsBatch(
       wallet,
       chunk,

@@ -256,6 +256,30 @@ export class NftCollection {
     return metadata;
   }
 
+  static async isOwner(
+    collectionAddress: Address,
+    address: Address
+  ): Promise<boolean> {
+    const toncenterBaseEndpoint: string = process.env.TESTNET!
+      ? 'https://testnet.toncenter.com'
+      : 'https://toncenter.com';
+
+    const client = new TonClient({
+      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
+      apiKey: process.env.TONCENTER_API_KEY,
+    });
+
+    const collectionData = await client.runMethod(
+      collectionAddress,
+      'get_collection_data'
+    );
+
+    collectionData.stack.pop();
+    collectionData.stack.pop();
+    const ownerAddress = collectionData.stack.readAddress();
+    return ownerAddress.equals(address);
+  }
+
   public get stateInit(): StateInit {
     const code = this.createCodeCell();
     const data = this.createDataCell();

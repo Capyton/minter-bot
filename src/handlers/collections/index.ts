@@ -21,6 +21,7 @@ import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
 import { NftCollection } from '@/contracts/NftCollection';
 import { getAddresses } from './getAddresses';
 import { newItem } from './newItem';
+import { isAddress } from '@/utils/address';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
@@ -31,24 +32,30 @@ const getAddress = async (
   ctx: Context,
   conversation: Conversation
 ): Promise<Address> => {
-  await ctx.reply('Enter collection address: ', {
+  const enterCollectionAddrMsg = await ctx.reply('Enter collection address: ', {
     reply_markup: cancelMenu,
   });
 
   const collection = await conversation.waitFor(':text');
-
-  let collectionAddress;
-  try {
-    collectionAddress = Address.parse(collection.message!.text);
-  } catch {
+  const wallet = await openWallet(
+    process.env.MNEMONIC!.split(' '),
+    Boolean(process.env.TESTNET!)
+  );
+  if (
+    !isAddress(collection.message!.text) ||
+    !(await NftCollection.isOwner(
+      Address.parse(collection.message!.text),
+      wallet.contract.address
+    ))
+  ) {
     await ctx.reply(
-      'Check the correctness of the entered address and try again.',
-      { reply_markup: cancelMenu }
+      'Check the correctness of the entered address and try again.'
     );
     return await getAddress(ctx, conversation);
   }
-  await collection.deleteMessage();
-  return collectionAddress;
+
+  await enterCollectionAddrMsg.delete();
+  return Address.parse(collection.message!.text);
 };
 
 const getImage = async (
@@ -332,6 +339,8 @@ export const existingCollectionOldData = async (
   ctx: Context
 ) => {
   await conversation.run(hydrate());
+
+  await ctx.deleteMessage();
 
   const collectionAddress = await getAddress(ctx, conversation);
 
