@@ -116,9 +116,9 @@ async function runApp() {
   bot.filter(adminUser, adminHelpHandler);
   bot.filter(knownUser, knownUserHelpHandler);
 
-  bot.catch((err) => {
-    console.error(`Error occurred: ${err}`);
-  });
+  // bot.catch((err) => {
+  //   console.error(`Error occurred: ${err}`);
+  // });
 
   await bot.init();
 

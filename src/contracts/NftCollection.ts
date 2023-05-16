@@ -86,12 +86,13 @@ export class NftCollection {
     address: Address
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
+    const amount = (0.03 * params.length + 0.1).toFixed(3);
     await wallet.contract.sendTransfer({
       seqno,
       secretKey: wallet.keyPair.secretKey,
       messages: [
         internal({
-          value: '0.05',
+          value: amount.toString(),
           to: address,
           body: this.createBatchMintBody({ items: params }),
         }),
@@ -108,8 +109,7 @@ export class NftCollection {
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
 
-    const amount = nftAmount * (0.035 + 0.03);
-
+    const amount = (nftAmount * (0.035 + 0.03)).toFixed(3);
     await wallet.contract.sendTransfer({
       seqno,
       secretKey: wallet.keyPair.secretKey,

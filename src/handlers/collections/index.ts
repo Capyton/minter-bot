@@ -19,9 +19,9 @@ import {
 import { openWallet } from '@/utils/wallet';
 import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
 import { NftCollection } from '@/contracts/NftCollection';
+import { isAddress } from '@/utils/address';
 import { getAddresses } from './getAddresses';
 import { newItem } from './newItem';
-import { isAddress } from '@/utils/address';
 
 const messageTemplate = (entity: string, name: string, description: string) => `
 *${entity} name:* ${name}.
@@ -118,10 +118,10 @@ export const newCollection = async (
   const nameCtx = await conversation.waitFor(':text');
 
   const name = nameCtx.message!.text ?? '';
-  let infoText = `*Collection name:* ${name}\n`;
+  let infoText = `<b>Collection name:</b> ${name}\n`;
 
   await infoMsg.editText(infoText, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
   });
   await nameCtx.deleteMessage();
 
@@ -129,11 +129,11 @@ export const newCollection = async (
   const descriptionCtx = await conversation.waitFor(':text');
 
   const description = descriptionCtx.message!.text ?? '';
-  infoText += `*Collection description:* ${description}\n\n`;
+  infoText += `<b>Collection description:</b> ${description}\n\n`;
 
   await enterCollectionMsg.delete();
   await infoMsg.editText(infoText, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
   });
   await descriptionCtx.deleteMessage();
 

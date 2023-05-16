@@ -1,6 +1,6 @@
 import { Address } from 'ton-core';
 import { CollectionData, NftCollection } from '@/contracts/NftCollection';
-import { waitSeqno } from '@/utils/delay';
+import { sleep, waitSeqno } from '@/utils/delay';
 import { OpenedWallet } from '@/utils/wallet';
 import { Context } from '@/types';
 
@@ -55,20 +55,22 @@ export const mintItems = async (
     chunks.push(chunk);
   }
 
-  const seqno = await NftCollection.topUpBalance(
-    wallet,
-    addresses.size,
-    collectionAddress
-  );
-  await waitSeqno(seqno, wallet);
-
   for (const chunk of chunks) {
-    const seqno = await NftCollection.deployItemsBatch(
-      wallet,
-      chunk,
-      collectionAddress
-    );
-    await waitSeqno(seqno, wallet);
+    let isBatchDeployed = false;
+    while (!isBatchDeployed) {
+      try {
+        const seqno = await NftCollection.deployItemsBatch(
+          wallet,
+          chunk,
+          collectionAddress
+        );
+        await waitSeqno(seqno, wallet);
+        isBatchDeployed = true;
+      } catch (e) {
+        console.error(e);
+        await sleep(2000);
+      }
+    }
   }
 
   await ctx.reply(`${addresses.size} SBT items are successfully minted`);

@@ -1,10 +1,10 @@
 import { OpenedWallet } from './wallet';
 
 export async function waitSeqno(seqno: number, wallet: OpenedWallet) {
-  for (let attempt = 0; attempt < 10; attempt++) {
+  for (let attempt = 0; attempt < 1000; attempt++) {
     await sleep(2000);
     const seqnoAfter = await wallet.contract.getSeqno();
-    if (seqnoAfter == seqno + 1) break;
+    if (seqnoAfter > seqno) break;
   }
 }
 
