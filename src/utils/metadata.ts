@@ -11,21 +11,24 @@ type CollectionMetadata = {
 type ItemMetadata = {
   name: string;
   description: string;
-  imagePath: string;
+  imagePath: string | undefined;
 };
 
 export async function createMetadataFile(
   itemsData: ItemMetadata,
   collectionName: string,
   itemImageFilename = 'itemImage.jpg',
-  metadataFilename = 'item.json'
+  metadataFilename = 'item.json',
+  itemPhoto: string | undefined = undefined
 ) {
-  const imageContent = await readFile(itemsData.imagePath);
-  const itemPhoto = await uploadFileToS3(
-    imageContent,
-    itemImageFilename,
-    collectionName
-  );
+  if (!itemPhoto) {
+    const imageContent = await readFile(itemsData.imagePath!);
+    itemPhoto = await uploadFileToS3(
+      imageContent,
+      itemImageFilename,
+      collectionName
+    );
+  }
   const metadata = {
     image: itemPhoto,
     description: itemsData.description,

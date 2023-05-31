@@ -22,7 +22,7 @@ const getAddressesFile = async (
 export const getAddresses = async (
   conversation: Conversation,
   ctx: Context
-): Promise<Set<Address>> => {
+): Promise<Address[]> => {
   await ctx.replyWithDocument(new InputFile('./src/assets/example.txt'), {
     caption:
       'Upload the file with addresses which must receive NFT (example above)',

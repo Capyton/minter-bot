@@ -28,7 +28,7 @@ export const mintCollection = async (
 export const mintItems = async (
   ctx: Context,
   wallet: OpenedWallet,
-  addresses: Set<Address>,
+  addresses: Address[],
   collectionAddress: Address,
   startIndex = 0,
   contentUrl = 'item.json'
@@ -49,7 +49,7 @@ export const mintItems = async (
 
   const chunks = [];
 
-  for (let i = 0; i < addresses.size; i += 6) {
+  for (let i = 0; i < addresses.length; i += 6) {
     const chunk = items.slice(i, i + 6);
 
     chunks.push(chunk);
@@ -73,5 +73,5 @@ export const mintItems = async (
     }
   }
 
-  await ctx.reply(`${addresses.size} SBT items are successfully minted`);
+  await ctx.reply(`${addresses.length} SBT items are successfully minted`);
 };

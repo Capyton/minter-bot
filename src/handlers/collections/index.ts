@@ -23,10 +23,21 @@ import { isAddress } from '@/utils/address';
 import { getAddresses } from './getAddresses';
 import { newItem } from './newItem';
 
-const messageTemplate = (entity: string, name: string, description: string) => `
+export const messageTemplate = (
+  entity: string,
+  name: string,
+  description: string,
+  addresses: Address[] | undefined = undefined
+) => {
+  let text = `
 *${entity} name:* ${name}.
-*${entity} description:*\n${description}
-`;
+*${entity} description:*\n${description}\n\n`;
+
+  if (addresses) {
+    text += `*Addresses:* ${addresses.join(', ')}`;
+  }
+  return text;
+};
 
 const getAddress = async (
   ctx: Context,
@@ -163,7 +174,7 @@ export const newCollection = async (
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
     addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 7) * 0.05 +
+    Math.ceil(addresses.size / 6) * 0.05 +
     0.2
   ).toFixed(3);
 

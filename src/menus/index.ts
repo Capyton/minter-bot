@@ -6,6 +6,8 @@ const baseFlowMenu = new InlineKeyboard()
   .row()
   .text('Use existing collection', 'existing-collection')
   .row()
+  .text('Mint new Footstep SBT', 'mint-footstep')
+  .row()
   .text('Cancel', 'cancel');
 
 const existingCollectionMenu = new InlineKeyboard()

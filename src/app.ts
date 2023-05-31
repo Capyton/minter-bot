@@ -23,6 +23,7 @@ import { adminUser, knownUser } from '@/filters';
 import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
+import { mintNewFootstepSbt } from './handlers/collections/footsteps';
 
 dotenv.config();
 
@@ -84,12 +85,18 @@ async function runApp() {
         existingCollectionOldData,
         'existing-collection-old-data'
       )
-    );
+    )
+    .use(createConversation(mintNewFootstepSbt, 'mint-footstep'));
 
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
+
+  bot.callbackQuery(
+    'mint-footstep',
+    async (ctx) => await ctx.conversation.enter('mint-footstep')
+  );
 
   bot.callbackQuery(
     'new-collection',

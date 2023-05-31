@@ -53,14 +53,14 @@ export const downloadFile = async (
 
 export const getAddressesFromFile = async (
   filename: string
-): Promise<Set<Address>> => {
-  const addresses = new Set<Address>();
+): Promise<Address[]> => {
+  const addresses = [];
 
   const data = await fs.readFile(filename);
 
   for (const address of data.toString().split('\n')) {
     if (address) {
-      addresses.add(Address.parse(address));
+      addresses.push(Address.parse(address));
     }
   }
   return addresses;
