@@ -108,6 +108,7 @@ export const mintNewFootstepSbt = async (
       imagePath: undefined,
     },
     'ton-footsteps',
+    '',
     metadataFilename,
     itemPhoto
   );

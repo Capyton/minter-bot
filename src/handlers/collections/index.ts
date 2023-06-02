@@ -173,8 +173,8 @@ export const newCollection = async (
   );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
-    addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 6) * 0.05 +
+    addresses.length * (0.035 + 0.03) +
+    Math.ceil(addresses.length / 6) * 0.05 +
     0.2
   ).toFixed(3);
 
@@ -290,8 +290,8 @@ export const existingCollectionNewData = async (
   );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
-    addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 7) * 0.05 +
+    addresses.length * (0.035 + 0.03) +
+    Math.ceil(addresses.length / 7) * 0.05 +
     0.2
   ).toFixed(3);
 
@@ -385,8 +385,8 @@ export const existingCollectionOldData = async (
   );
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = (
-    addresses.size * (0.035 + 0.03) +
-    Math.ceil(addresses.size / 7) * 0.05 +
+    addresses.length * (0.035 + 0.03) +
+    Math.ceil(addresses.length / 7) * 0.05 +
     0.2
   ).toFixed(3);
 
