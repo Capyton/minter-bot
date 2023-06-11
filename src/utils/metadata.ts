@@ -17,23 +17,40 @@ type ItemMetadata = {
 export async function createMetadataFile(
   itemsData: ItemMetadata,
   collectionName: string,
-  itemImageFilename = 'itemImage.jpg',
+  itemImageFilename = 'itemImage',
   metadataFilename = 'item.json',
-  itemPhoto: string | undefined = undefined
+  itemPhoto: string | undefined = undefined,
+  collectionImage: string | undefined = undefined
 ) {
   if (!itemPhoto) {
     const imageContent = await readFile(itemsData.imagePath!);
+    if (itemsData.imagePath?.endsWith('mp4')) {
+      itemImageFilename += '.mp4';
+    } else {
+      itemImageFilename += '.jpg';
+    }
     itemPhoto = await uploadFileToS3(
       imageContent,
       itemImageFilename,
       collectionName
     );
   }
-  const metadata = {
-    image: itemPhoto,
-    description: itemsData.description,
-    name: itemsData.name,
-  };
+  let metadata = {};
+  if (itemImageFilename.includes('.mp4')) {
+    metadata = {
+      image: collectionImage,
+      description: itemsData.description,
+      name: itemsData.name,
+      content_url: itemPhoto,
+      content_type: 'video/mp4',
+    };
+  } else {
+    metadata = {
+      image: itemPhoto,
+      description: itemsData.description,
+      name: itemsData.name,
+    };
+  }
   const metadataContent = Buffer.from(JSON.stringify(metadata));
   const fileURL = await uploadFileToS3(
     metadataContent,
@@ -74,5 +91,5 @@ export async function createCollectionMetadata(
     'collection.json',
     collectionData.name
   );
-  return fileURL;
+  return { url: fileURL, data: metadata };
 }

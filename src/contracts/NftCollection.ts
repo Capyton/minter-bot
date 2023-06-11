@@ -194,6 +194,29 @@ export class NftCollection {
     return body.endCell();
   }
 
+  static async getImage(collectionAddress: Address) {
+    const toncenterBaseEndpoint: string = process.env.TESTNET!
+      ? 'https://testnet.toncenter.com'
+      : 'https://toncenter.com';
+
+    const client = new TonClient({
+      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
+      apiKey: process.env.TONCENTER_API_KEY,
+    });
+
+    const collectionData = await client.runMethod(
+      collectionAddress,
+      'get_collection_data'
+    );
+
+    collectionData.stack.readNumber();
+    const collectionContentUrl = collectionData.stack.readString();
+    const response = await fetch(collectionContentUrl);
+    const data = await response.json();
+
+    return data.image;
+  }
+
   static async getLastNftIndex(collectionAddress: Address) {
     const toncenterBaseEndpoint: string = process.env.TESTNET!
       ? 'https://testnet.toncenter.com'

@@ -195,11 +195,13 @@ export const newCollection = async (
     reply_markup: new InlineKeyboard(),
   });
 
-  // TODO: refuse to fully download files
-  const itemImageFilename = randomUUID() + '.jpg';
+  const fileType = itemImage.message?.document?.mime_type?.includes('video')
+    ? '.mp4'
+    : '.jpeg';
+  const itemImageFilename = randomUUID() + fileType;
   const itemImagePathname = await downloadFile(
     itemImage,
-    'photo',
+    itemImage.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
     itemImageFilename
   );
 
@@ -213,27 +215,32 @@ export const newCollection = async (
     coverImageFilename
   );
 
-  const commonContentUrl = await createMetadataFile(
-    {
-      name: itemName,
-      description: itemDescription,
-      imagePath: path.join(itemImagePathname, itemImageFilename),
-    },
-    name
-  );
-  const collectionContentUrl = await createCollectionMetadata({
+  const collectionContent = await createCollectionMetadata({
     name,
     description,
     imagePathname: path.join(imagePathname, imageFilename),
     coverImagePathname: path.join(coverImagePathname, coverImageFilename),
   });
 
+  const commonContentUrl = await createMetadataFile(
+    {
+      name: itemName,
+      description: itemDescription,
+      imagePath: path.join(itemImagePathname, itemImageFilename),
+    },
+    name,
+    undefined,
+    undefined,
+    undefined,
+    collectionContent.data.image
+  );
+
   const collectionData = {
     ownerAddress: wallet.contract.address,
     royaltyPercent: 0,
     royaltyAddress: wallet.contract.address,
     nextItemIndex: 0,
-    collectionContentUrl,
+    collectionContentUrl: collectionContent.url,
     commonContentUrl: commonContentUrl.split('item.json')[0],
   };
 
@@ -312,12 +319,24 @@ export const existingCollectionNewData = async (
     reply_markup: new InlineKeyboard(),
   });
 
-  const imageFilename = randomUUID() + '.jpg';
-  const imagePathname = await downloadFile(image, 'photo', imageFilename);
+  const fileType = image.message?.document?.mime_type?.includes('video')
+    ? '.mp4'
+    : '.jpeg';
+  const imageFilename = randomUUID() + fileType;
+  const imagePathname = await downloadFile(
+    image,
+    image.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
+    imageFilename
+  );
 
   const collectionName = await NftCollection.getName(collectionAddress);
 
   const metadataFilename = randomUUID() + '.json';
+  const nextItemIndex =
+    (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
+
+  const collectionImageURL = await NftCollection.getImage(collectionAddress);
+
   await createMetadataFile(
     {
       name: name,
@@ -325,11 +344,11 @@ export const existingCollectionNewData = async (
       imagePath: path.join(imagePathname, imageFilename),
     },
     collectionName,
-    randomUUID() + '.jpg',
-    metadataFilename
+    randomUUID(),
+    metadataFilename,
+    undefined,
+    collectionImageURL
   );
-  const nextItemIndex =
-    (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
 
   await mintItems(
     ctx,
@@ -370,11 +389,20 @@ export const existingCollectionOldData = async (
     'Please confirm minting of the new SBT Items based on this data\n' +
     messageTemplate('Item', name, description);
 
-  await ctx.replyWithPhoto(image, {
-    caption: text,
-    parse_mode: 'Markdown',
-    reply_markup: confirmMintingMenu,
-  });
+  if (image.endsWith('.mp4')) {
+    await ctx.replyWithVideo(image, {
+      caption: text,
+      parse_mode: 'Markdown',
+      reply_markup: confirmMintingMenu,
+    });
+  } else {
+    await ctx.replyWithPhoto(image, {
+      caption: text,
+      parse_mode: 'Markdown',
+      reply_markup: confirmMintingMenu,
+    });
+  }
+
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
 
   const addresses = await getAddresses(conversation, ctx);

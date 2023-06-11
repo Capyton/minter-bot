@@ -8,11 +8,15 @@ const getItemImage = async (
 ): Promise<Context> => {
   const image = await conversation.wait();
 
-  if (image.message?.photo) {
+  if (
+    image.message?.photo ||
+    image.message?.document?.mime_type === 'video/mp4' ||
+    image.message?.document?.mime_type?.includes('image')
+  ) {
     return image;
   }
 
-  await ctx.reply('Item image must be an image');
+  await ctx.reply('Check the correctness of the sent file');
 
   return await getItemImage(conversation, ctx);
 };
@@ -48,7 +52,9 @@ export const newItem = async (
   await enterDescriptionMsg.delete();
   await descriptionContext.deleteMessage();
 
-  await ctx.reply("Upload item's image");
+  await ctx.reply(
+    "Upload item's image or video as a document (the document cannot weigh more than 25mb)"
+  );
 
   const image = await getItemImage(conversation, ctx);
 
