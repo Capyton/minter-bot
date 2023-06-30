@@ -55,9 +55,10 @@ export const showWhitelist = async (ctx: Context) => {
     `<b>Users whitelist:</b>\n${users
       .map(
         (user, index) =>
-          `${index + 1}. <a href="tg://user?id=${user.user_id}">${
-            user.user_id
-          }</a>`
+          `${index + 1}. ` +
+          (user.username
+            ? `@${user.username} (<code>${user.user_id}</code>)`
+            : `<a href="tg://user?id=${user.user_id}">${user.user_id}</a>`)
       )
       .join('\n')}`,
     { parse_mode: 'HTML' }

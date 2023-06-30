@@ -24,6 +24,7 @@ import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
 import { mintNewFootstepSbt } from './handlers/collections/footsteps';
+import { saveAdminUsernames } from './middlewares/usernames';
 
 dotenv.config();
 
@@ -63,7 +64,8 @@ async function runApp() {
     )
     .use(hydrate())
     .use(dbMiddleware.handle.bind(dbMiddleware))
-    .use(conversations());
+    .use(conversations())
+    .use(saveAdminUsernames);
 
   bot.callbackQuery('cancel', cancelHandler);
   bot.command('cancel', cancelHandler);
@@ -123,9 +125,9 @@ async function runApp() {
   bot.filter(adminUser, adminHelpHandler);
   bot.filter(knownUser, knownUserHelpHandler);
 
-  // bot.catch((err) => {
-  //   console.error(`Error occurred: ${err}`);
-  // });
+  bot.catch((err) => {
+    console.error(`Error occurred: ${err}`);
+  });
 
   await bot.init();
 

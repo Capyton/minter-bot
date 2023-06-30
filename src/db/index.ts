@@ -32,4 +32,7 @@ export class User extends BaseEntity {
 
   @Column({ unique: true })
   user_id: number;
+
+  @Column({ nullable: true, type: 'varchar', default: null })
+  username: string | null;
 }
