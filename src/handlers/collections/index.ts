@@ -240,7 +240,7 @@ export const newCollection = async (
     royaltyPercent: 0,
     royaltyAddress: wallet.contract.address,
     nextItemIndex: 0,
-    collectionContentUrl: 'h' + collectionContent.url,
+    collectionContentUrl: collectionContent.url,
     commonContentUrl: commonContentUrl.split('item.json')[0],
   };
 

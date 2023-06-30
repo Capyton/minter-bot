@@ -11,6 +11,7 @@ import {
   Dictionary,
   DictionaryValue,
 } from 'ton-core';
+import { encodeOffChainContent } from '@/utils/metadata';
 import { OpenedWallet } from '../utils/wallet';
 
 export type CollectionData = {
@@ -329,14 +330,12 @@ export class NftCollection {
 
     const contentCell = beginCell();
 
-    const collectionContent = beginCell();
-    collectionContent.storeStringTail(data.collectionContentUrl);
+    const collectionContent = encodeOffChainContent(data.collectionContentUrl);
 
-    const commonContent = beginCell();
-    commonContent.storeStringTail(data.commonContentUrl);
+    const commonContent = encodeOffChainContent(data.commonContentUrl);
 
-    contentCell.storeRef(collectionContent.asCell());
-    contentCell.storeRef(commonContent.asCell());
+    contentCell.storeRef(collectionContent);
+    contentCell.storeRef(commonContent);
     dataCell.storeRef(contentCell);
 
     const NftItemCodeCell = Cell.fromBase64(
