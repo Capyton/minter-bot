@@ -293,15 +293,18 @@ export class NftCollection {
       apiKey: process.env.TONCENTER_API_KEY,
     });
 
-    const collectionData = await client.runMethod(
-      collectionAddress,
-      'get_collection_data'
-    );
-
-    collectionData.stack.pop();
-    collectionData.stack.pop();
-    const ownerAddress = collectionData.stack.readAddress();
-    return ownerAddress.equals(address);
+    try {
+      const collectionData = await client.runMethod(
+        collectionAddress,
+        'get_collection_data'
+      );
+      collectionData.stack.pop();
+      collectionData.stack.pop();
+      const ownerAddress = collectionData.stack.readAddress();
+      return ownerAddress.equals(address);
+    } catch {
+      return false;
+    }
   }
 
   public get stateInit(): StateInit {
