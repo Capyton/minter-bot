@@ -68,7 +68,7 @@ export const mintNewFootstepSbt = async (
     messageTemplate('Item', name, description, addresses);
 
   await ctx.reply(text, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
     reply_markup: confirmMintingMenu,
   });
   ctx = await conversation.waitForCallbackQuery('confirm-minting');

@@ -30,11 +30,11 @@ export const messageTemplate = (
   addresses: Address[] | undefined = undefined
 ) => {
   let text = `
-*${entity} name:* ${name}.
-*${entity} description:*\n${description}\n\n`;
+<b>${entity} name:</b> ${name}.
+<b>${entity} description:</b>\n${description}\n\n`;
 
   if (addresses) {
-    text += `*Addresses:* ${addresses.join(', ')}`;
+    text += `<b>Addresses:</b> ${addresses.join(', ')}`;
   }
   return text;
 };
@@ -161,7 +161,7 @@ export const newCollection = async (
     messageTemplate('Collection', name, description) +
     messageTemplate('Item', itemName, itemDescription);
   await ctx.reply(text, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
     reply_markup: confirmMintingMenu,
   });
 
@@ -285,7 +285,7 @@ export const existingCollectionNewData = async (
     'Please confirm minting of the new SBT Items based on this data\n' +
     messageTemplate('Item', name, description);
   await ctx.reply(text, {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
     reply_markup: confirmMintingMenu,
   });
 
@@ -392,13 +392,13 @@ export const existingCollectionOldData = async (
   if (image.endsWith('.mp4')) {
     await ctx.replyWithVideo(image, {
       caption: text,
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: confirmMintingMenu,
     });
   } else {
     await ctx.replyWithPhoto(image, {
       caption: text,
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       reply_markup: confirmMintingMenu,
     });
   }
