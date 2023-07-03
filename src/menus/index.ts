@@ -21,8 +21,10 @@ const confirmMintingMenu = new InlineKeyboard()
   .text('cancel', 'cancel');
 
 const transferTONMenu = (receiver: string, amount: string) => {
+  const baseText = `transfer/${receiver}?amount=${toNano(amount)}`;
   const menu = new InlineKeyboard()
-    .url('Tonkeeper', `ton://transfer/${receiver}?amount=${toNano(amount)}`)
+    .url('Tonkeeper', `https://app.tonkeeper.com/${baseText}`)
+    .url('TonHub', `https://tonhub.com/${baseText}`)
     .row()
     .text('cancel', 'cancel');
   return menu;
