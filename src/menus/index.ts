@@ -8,6 +8,8 @@ const baseFlowMenu = new InlineKeyboard()
   .row()
   .text('Mint new Footstep SBT', 'mint-footstep')
   .row()
+  .text('👨‍🏫 See tutorials', 'tutorials')
+  .row()
   .text('Cancel', 'cancel');
 
 const existingCollectionMenu = new InlineKeyboard()
@@ -36,11 +38,22 @@ const transactionSentMenu = new InlineKeyboard()
   .text('I sent transaction', 'transaction-sent')
   .row();
 
+const tutorialsMenu = new InlineKeyboard()
+  .url('How to create an SBT collection?', 'https://youtu.be/Jj-zh9aJZMQ')
+  .row()
+  .url(
+    'How to mint more SBTs into the collection?',
+    'https://youtu.be/kooPs6ivdKc'
+  )
+  .row()
+  .text('Cancel', 'cancel');
+
 export {
   baseFlowMenu,
   confirmMintingMenu,
   transferTONMenu,
   transactionSentMenu,
   existingCollectionMenu,
+  tutorialsMenu,
   cancelMenu,
 };

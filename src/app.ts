@@ -17,6 +17,7 @@ import {
   deleteUserFromWhitelist,
   showWhitelist,
   cancelHandler,
+  tutorialsHandler,
 } from '@/handlers';
 import { Api, Context } from '@/types';
 import { adminUser, knownUser } from '@/filters';
@@ -94,7 +95,7 @@ async function runApp() {
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
-
+  bot.callbackQuery('tutorials', tutorialsHandler);
   bot.callbackQuery(
     'mint-footstep',
     async (ctx) => await ctx.conversation.enter('mint-footstep')
