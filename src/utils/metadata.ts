@@ -131,9 +131,11 @@ function makeSnakeCell(data: Buffer): Cell {
   return curCell.endCell();
 }
 
-export function encodeOffChainContent(content: string) {
+export function encodeOffChainContent(content: string, usePrefix?: boolean) {
   let data = Buffer.from(content);
-  const offChainPrefix = Buffer.from([0x01]);
-  data = Buffer.concat([offChainPrefix, data]);
+  if (usePrefix === undefined) {
+    const offChainPrefix = Buffer.from([0x01]);
+    data = Buffer.concat([offChainPrefix, data]);
+  }
   return makeSnakeCell(data);
 }

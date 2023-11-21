@@ -8,3 +8,6 @@ node_modules/
 # Miscellaneous
 .DS_STORE
 .env
+*.jpg
+*.jpeg
+addresses

@@ -335,7 +335,7 @@ export class NftCollection {
 
     const collectionContent = encodeOffChainContent(data.collectionContentUrl);
 
-    const commonContent = encodeOffChainContent(data.commonContentUrl);
+    const commonContent = encodeOffChainContent(data.commonContentUrl, false);
 
     contentCell.storeRef(collectionContent);
     contentCell.storeRef(commonContent);
