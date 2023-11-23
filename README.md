@@ -15,3 +15,10 @@ echo $'BOT_TOKEN=<...>\nADMIN_ID=<...>' > .env
 ```
 npm start
 ```
+
+TODO:
+1. Delete used files 
+2. Add ability to use files as collection image 
+3. Add ability to edit metadata 
+4. Add ability to mint an empty collections
+5. Add ability to min NFT with custom meta
