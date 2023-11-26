@@ -147,19 +147,46 @@ export const newCollection = async (
     parse_mode: 'HTML',
   });
   await descriptionCtx.deleteMessage();
-
-  const {
-    name: itemName,
-    description: itemDescription,
-    image: itemImage,
-  } = await newItem(conversation, ctx, infoMsg, infoText);
-
-  const addresses = await getAddresses(conversation, ctx);
-
-  const text =
+  const collectionType = await ctx.reply(
+    'Do you want to add first items to this collection?',
+    {
+      reply_markup: new InlineKeyboard()
+        .text('Yes', 'add-first-items')
+        .row()
+        .text('No', 'empty-collection'),
+    }
+  );
+  const msg = await conversation.waitForCallbackQuery([
+    'empty-collection',
+    'add-first-items',
+  ]);
+  await collectionType.delete();
+  const collectionEmpty = msg.callbackQuery.data == 'empty-collection';
+  let text =
     'Please confirm minting of the new NFT collection based on this data\n' +
-    messageTemplate('Collection', name, description) +
-    messageTemplate('Item', itemName, itemDescription);
+    messageTemplate('Collection', name, description);
+  let tonAmount = '0.1';
+  let addresses = [
+    Address.parse('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c'),
+  ];
+  let itemImage = ctx;
+  let itemDescription = '';
+  let itemName = '';
+  if (!collectionEmpty) {
+    const {
+      name: itemName,
+      description: itemDescription,
+      image: smt,
+    } = await newItem(conversation, ctx, infoMsg, infoText);
+    itemImage = smt;
+    addresses = await getAddresses(conversation, ctx);
+    text += messageTemplate('Item', itemName, itemDescription);
+    tonAmount = (
+      addresses.length * (0.035 + 0.03) +
+      Math.ceil(addresses.length / 6) * 0.05 +
+      0.2
+    ).toFixed(3);
+  }
   await ctx.reply(text, {
     parse_mode: 'HTML',
     reply_markup: confirmMintingMenu,
@@ -172,11 +199,6 @@ export const newCollection = async (
     Boolean(process.env.TESTNET!)
   );
   const receiverAddress = wallet.contract.address.toString();
-  const tonAmount = (
-    addresses.length * (0.035 + 0.03) +
-    Math.ceil(addresses.length / 6) * 0.05 +
-    0.2
-  ).toFixed(3);
 
   await ctx.editMessageText(
     `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
@@ -194,16 +216,19 @@ export const newCollection = async (
   await ctx.editMessageText('Start minting...', {
     reply_markup: new InlineKeyboard(),
   });
-
-  const fileType = itemImage.message?.document?.mime_type?.includes('video')
-    ? '.mp4'
-    : '.jpeg';
-  const itemImageFilename = randomUUID() + fileType;
-  const itemImagePathname = await downloadFile(
-    itemImage,
-    itemImage.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
-    itemImageFilename
-  );
+  let itemImagePathname = '';
+  let itemImageFilename = '';
+  if (!collectionEmpty) {
+    const fileType = itemImage.message?.document?.mime_type?.includes('video')
+      ? '.mp4'
+      : '.jpeg';
+    itemImageFilename = randomUUID() + fileType;
+    itemImagePathname = await downloadFile(
+      itemImage,
+      itemImage.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
+      itemImageFilename
+    );
+  }
 
   const imageFilename = randomUUID() + '.jpg';
   const imagePathname = await downloadFile(image, 'photo', imageFilename);
@@ -222,35 +247,35 @@ export const newCollection = async (
     coverImagePathname: path.join(coverImagePathname, coverImageFilename),
   });
 
-  const commonContentUrl = await createMetadataFile(
-    {
-      name: itemName,
-      description: itemDescription,
-      imagePath: path.join(itemImagePathname, itemImageFilename),
-    },
-    name,
-    undefined,
-    undefined,
-    undefined,
-    collectionContent.data.image
-  );
-
   const collectionData = {
     ownerAddress: wallet.contract.address,
     royaltyPercent: 0,
     royaltyAddress: wallet.contract.address,
     nextItemIndex: 0,
     collectionContentUrl: collectionContent.url,
-    commonContentUrl: commonContentUrl.split('item.json')[0],
+    commonContentUrl: collectionContent.url.split('collection.json')[0],
   };
-
+  if (!collectionEmpty) {
+    const commonContentUrl = await createMetadataFile(
+      {
+        name: itemName,
+        description: itemDescription,
+        imagePath: path.join(itemImagePathname, itemImageFilename),
+      },
+      name,
+      undefined,
+      undefined,
+      undefined,
+      collectionContent.data.image
+    );
+  }
   const collection = await mintCollection(ctx, {
     collectionData,
     wallet,
   });
-
-  await mintItems(ctx, wallet, addresses, collection.address);
-
+  if (!collectionEmpty) {
+    await mintItems(ctx, wallet, addresses, collection.address);
+  }
   await ctx.reply('Would you like to continue?', {
     reply_markup: baseFlowMenu,
   });

@@ -133,8 +133,12 @@ async function runApp() {
     const date = date_ob.getDate();
     const month = date_ob.getMonth() + 1;
     const year = date_ob.getFullYear();
+    const hours = date_ob.getHours();
+    const minutes = date_ob.getMinutes();
 
-    console.error(`${year}-${month}-${date} Error occurred: ${err}`);
+    console.error(
+      `${year}-${month}-${date} ${hours}:${minutes} Error occurred: ${err}, ${err.cause}, ${err.stack}, ${err.ctx}`
+    );
   });
 
   await bot.init();
