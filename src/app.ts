@@ -11,6 +11,7 @@ import {
   knownUserHelpHandler,
   adminHelpHandler,
   newCollection,
+  newEmptyCollection,
   existingCollectionNewData,
   existingCollectionOldData,
   addUserToWhitelist,
@@ -76,6 +77,7 @@ async function runApp() {
   bot.command(['help', 'start'], anonymousHelpHandler);
 
   bot
+    .use(createConversation(newEmptyCollection, 'new-empty-collection'))
     .use(createConversation(newCollection, 'new-collection'))
     .use(
       createConversation(
@@ -100,7 +102,10 @@ async function runApp() {
     'mint-footstep',
     async (ctx) => await ctx.conversation.enter('mint-footstep')
   );
-
+  bot.callbackQuery(
+    'new-empty-collection',
+    async (ctx) => await ctx.conversation.enter('new-empty-collection')
+  );
   bot.callbackQuery(
     'new-collection',
     async (ctx) => await ctx.conversation.enter('new-collection')
@@ -133,8 +138,12 @@ async function runApp() {
     const date = date_ob.getDate();
     const month = date_ob.getMonth() + 1;
     const year = date_ob.getFullYear();
+    const hours = date_ob.getHours();
+    const minutes = date_ob.getMinutes();
 
-    console.error(`${year}-${month}-${date} Error occurred: ${err}`);
+    console.error(
+      `${year}-${month}-${date} ${hours}:${minutes}  Error occurred: ${err}`
+    );
   });
 
   await bot.init();

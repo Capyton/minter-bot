@@ -4,6 +4,8 @@ import { toNano } from 'ton-core';
 const baseFlowMenu = new InlineKeyboard()
   .text('Create new collection', 'new-collection')
   .row()
+  .text('Create new empty collection', 'new-empty-collection')
+  .row()
   .text('Use existing collection', 'existing-collection')
   .row()
   .text('Mint new Footstep SBT', 'mint-footstep')
