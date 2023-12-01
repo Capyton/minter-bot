@@ -54,7 +54,7 @@ export const downloadFile = async (
 export const getAddressesFromFile = async (
   filename: string
 ): Promise<Address[]> => {
-  const addressesHashes: Set<ArrayBufferLike> = new Set();
+  const addressesString: Set<string> = new Set();
   const addresses: Address[] = [];
 
   const data = await fs.readFile(filename);
@@ -62,8 +62,8 @@ export const getAddressesFromFile = async (
   for (const stringAddress of data.toString().split('\n')) {
     if (stringAddress) {
       const address = Address.parse(stringAddress);
-      if (!addressesHashes.has(address.hash.buffer)) {
-        addressesHashes.add(address.hash.buffer);
+      if (!addressesString.has(address.toRawString())) {
+        addressesString.add(address.toRawString());
         addresses.push(address);
       }
     }
