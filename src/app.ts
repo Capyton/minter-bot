@@ -27,6 +27,7 @@ import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
 import { mintNewFootstepSbt } from './handlers/collections/footsteps';
 import { saveAdminUsernames } from './middlewares/usernames';
+import { revokeSbtRewardHandler } from './handlers/revokeReward';
 
 dotenv.config();
 
@@ -91,25 +92,30 @@ async function runApp() {
         'existing-collection-old-data'
       )
     )
-    .use(createConversation(mintNewFootstepSbt, 'mint-footstep'));
+    .use(createConversation(mintNewFootstepSbt, 'mint-footstep'))
+    .use(createConversation(revokeSbtRewardHandler, 'revoke-sbt-reward'));
 
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
   bot.callbackQuery('tutorials', tutorialsHandler);
-  bot.callbackQuery(
+
+  const callbackConversationsNames = [
     'mint-footstep',
-    async (ctx) => await ctx.conversation.enter('mint-footstep')
-  );
-  bot.callbackQuery(
     'new-empty-collection',
-    async (ctx) => await ctx.conversation.enter('new-empty-collection')
-  );
-  bot.callbackQuery(
     'new-collection',
-    async (ctx) => await ctx.conversation.enter('new-collection')
-  );
+    'existing-collection-new-data',
+    'existing-collection-old-data',
+    'revoke-sbt-reward',
+  ];
+
+  for (const conversationName of callbackConversationsNames) {
+    bot.callbackQuery(
+      conversationName,
+      async (ctx) => await ctx.conversation.enter(conversationName)
+    );
+  }
 
   bot.callbackQuery(
     'existing-collection',
@@ -118,14 +124,6 @@ async function runApp() {
         'Do you want to mint an item using previously entered data or you want to update the data?',
         { reply_markup: existingCollectionMenu }
       )
-  );
-  bot.callbackQuery(
-    'existing-collection-new-data',
-    async (ctx) => await ctx.conversation.enter('existing-collection-new-data')
-  );
-  bot.callbackQuery(
-    'existing-collection-old-data',
-    async (ctx) => await ctx.conversation.enter('existing-collection-old-data')
   );
 
   bot.filter(adminUser, adminHelpHandler);

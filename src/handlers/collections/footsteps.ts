@@ -4,6 +4,7 @@ import { Address } from 'ton-core';
 import { NftCollection } from '@/contracts/NftCollection';
 import {
   baseFlowMenu,
+  cancelMenu,
   confirmMintingMenu,
   transactionSentMenu,
   transferTONMenu,
@@ -14,14 +15,12 @@ import { openWallet } from '@/utils/wallet';
 import { createMetadataFile } from '@/utils/metadata';
 import { messageTemplate } from '.';
 
-const getAddressesFromText = async (
+export const getAddressesFromText = async (
   conversation: Conversation,
-  ctx: Context
+  ctx: Context,
+  text: string
 ): Promise<Address[]> => {
-  await ctx.reply(
-    'Send addresses, which should receive SBT rewards according to this example:\n\nEQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N, EQDaaxtmY6Dk0YzIV0zNnbUpbjZ92TJHBvO72esc0srwv8K2'
-  );
-
+  await ctx.reply(text, { reply_markup: cancelMenu });
   const addressesList = await conversation.form.text();
 
   try {
@@ -34,7 +33,7 @@ const getAddressesFromText = async (
     return addresses;
   } catch {
     await ctx.reply('Check correctness of your addresses and try again.');
-    return await getAddressesFromText(conversation, ctx);
+    return await getAddressesFromText(conversation, ctx, text);
   }
 };
 
@@ -55,7 +54,11 @@ export const mintNewFootstepSbt = async (
   await ctx.reply('Send link to the footstep issue from github:');
   const footstepLink = await conversation.form.text();
 
-  const addresses = await getAddressesFromText(conversation, ctx);
+  const addresses = await getAddressesFromText(
+    conversation,
+    ctx,
+    'Send addresses, which should receive SBT rewards according to this example:\n\nEQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N, EQDaaxtmY6Dk0YzIV0zNnbUpbjZ92TJHBvO72esc0srwv8K2'
+  );
 
   const footstepIndex = footstepLink.split('/').pop();
 

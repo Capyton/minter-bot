@@ -12,6 +12,8 @@ const baseFlowMenu = new InlineKeyboard()
   .row()
   .text('👨‍🏫 See tutorials', 'tutorials')
   .row()
+  // .text('🚫 Revoke SBT reward', 'revoke-sbt-reward')
+  // .row()
   .text('Cancel', 'cancel');
 
 const existingCollectionMenu = new InlineKeyboard()

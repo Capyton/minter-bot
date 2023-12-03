@@ -28,6 +28,7 @@ export type CollectionMintItemInput = {
   index: number;
   ownerAddress: Address;
   content: string;
+  authorityAddress: Address;
 };
 
 const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
@@ -39,7 +40,7 @@ const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
 
     nftItemMessage.storeAddress(src.ownerAddress);
     nftItemMessage.storeRef(itemContent);
-    nftItemMessage.storeAddress(src.ownerAddress);
+    nftItemMessage.storeAddress(src.authorityAddress);
     nftItemMessage.storeUint(0, 64);
 
     builder.storeCoins(toNano(src.passAmount));
@@ -51,6 +52,7 @@ const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
       passAmount: '',
       index: 0,
       content: '',
+      authorityAddress: new Address(0, Buffer.from([])),
       ownerAddress: new Address(0, Buffer.from([])),
       editorAddress: new Address(0, Buffer.from([])),
     };
@@ -307,6 +309,33 @@ export class NftCollection {
     }
   }
 
+  static async revokeSbtReward(
+    wallet: OpenedWallet,
+    sbtAddress: Address
+  ): Promise<number> {
+    const seqno = await wallet.contract.getSeqno();
+    const body = beginCell();
+
+    body.storeUint(0x6f89f5e3, 32);
+    body.storeUint(0, 64);
+
+    const amount = '0.03';
+
+    await wallet.contract.sendTransfer({
+      seqno,
+      secretKey: wallet.keyPair.secretKey,
+      messages: [
+        internal({
+          value: amount,
+          to: sbtAddress,
+          body: body.endCell(),
+        }),
+      ],
+      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
+    });
+    return seqno;
+  }
+
   public get stateInit(): StateInit {
     const code = this.createCodeCell();
     const data = this.createDataCell();
@@ -342,7 +371,7 @@ export class NftCollection {
     dataCell.storeRef(contentCell);
 
     const NftItemCodeCell = Cell.fromBase64(
-      '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'
+      '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'
     );
     dataCell.storeRef(NftItemCodeCell);
 
