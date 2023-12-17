@@ -46,10 +46,10 @@ export const mintNewFootstepSbt = async (
   await ctx.deleteMessage();
 
   const collectionAddress = Address.parse(
-    'EQCV8xVdWOV23xqOyC1wAv-D_H02f7gAjPzOlNN6Nv1ksVdL'
+    'EQBAJCGblueX9Nwr84TmrcLmIoPbeunnujBoziT3MtJuaJ0J'
   );
-  const itemPhoto =
-    'https://sbt-bot-minter.s3.amazonaws.com/ton-footsteps/collection.png';
+  const collectionPhoto =
+    'https://sbt-bot-minter.s3.amazonaws.com/TON%20Bounties%20Contributors/logo.jpg';
 
   await ctx.reply('Send link to the footstep issue from github:');
   const footstepLink = await conversation.form.text();
@@ -62,12 +62,11 @@ export const mintNewFootstepSbt = async (
 
   const footstepIndex = footstepLink.split('/').pop();
 
-  const name = `TON Footstep #${footstepIndex}`;
-  const description =
-    'TON Footsteps are steps taken by TON Community on the path towards improving The Open Network.';
+  const name = `TON Bounty #${footstepIndex}`;
+  const description = 'Reward for valuable TON Ecosystem contributions';
 
   const text =
-    'Please confirm minting of the new Footsteps SBT Items based on this data\n' +
+    'Please confirm minting of the new Bounty SBT Items based on this data\n' +
     messageTemplate('Item', name, description, addresses);
 
   await ctx.reply(text, {
@@ -104,16 +103,19 @@ export const mintNewFootstepSbt = async (
     reply_markup: new InlineKeyboard(),
   });
   const metadataFilename = `${footstepIndex}.json`;
+  const footstepVideo =
+    'https://sbt-bot-minter.s3.amazonaws.com/TON%20Bounties%20Contributors/255d1591-cb28-4f51-a975-ae1e5a6330db.mp4';
   await createMetadataFile(
     {
       name,
       description,
       imagePath: undefined,
     },
-    'ton-footsteps',
-    '',
+    'TON Bounties Contributors',
+    footstepVideo,
     metadataFilename,
-    itemPhoto
+    footstepVideo,
+    collectionPhoto
   );
   const nextItemIndex =
     (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
