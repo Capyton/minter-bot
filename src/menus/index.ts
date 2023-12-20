@@ -33,7 +33,7 @@ const transferTONMenu = (receiver: string, amount: string) => {
     .url('TonHub', `https://tonhub.com/${baseText}`)
     .row()
     .text('cancel', 'cancel');
-  return menu;
+  return { transferMenu: menu, basicUrl: `ton://${baseText}` };
 };
 
 const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');

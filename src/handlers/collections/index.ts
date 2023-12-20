@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { InlineKeyboard } from 'grammy';
+import { InlineKeyboard, InputFile } from 'grammy';
 import { hydrate } from '@grammyjs/hydrate';
 
 import { Address } from 'ton-core';
@@ -20,6 +20,7 @@ import { openWallet } from '@/utils/wallet';
 import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
 import { NftCollection } from '@/contracts/NftCollection';
 import { isAddress } from '@/utils/address';
+import { generateQRCode } from '@/utils/qr';
 import { getAddresses } from './getAddresses';
 import { newItem } from './newItem';
 
@@ -166,13 +167,17 @@ export const newEmptyCollection = async (
   const receiverAddress = wallet.contract.address.toString();
   const tonAmount = '0.1';
 
-  await ctx.editMessageText(
-    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: transferTONMenu(receiverAddress, tonAmount),
-    }
+  const { transferMenu, basicUrl } = transferTONMenu(
+    receiverAddress,
+    tonAmount
   );
+  const qrcodeBuffer = await generateQRCode(basicUrl);
+
+  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    parse_mode: 'HTML',
+    reply_markup: transferMenu,
+  });
 
   await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
@@ -301,13 +306,17 @@ export const newCollection = async (
     0.2
   ).toFixed(3);
 
-  await ctx.editMessageText(
-    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: transferTONMenu(receiverAddress, tonAmount),
-    }
+  const { transferMenu, basicUrl } = transferTONMenu(
+    receiverAddress,
+    tonAmount
   );
+  const qrcodeBuffer = await generateQRCode(basicUrl);
+
+  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    parse_mode: 'HTML',
+    reply_markup: transferMenu,
+  });
 
   await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
@@ -425,13 +434,17 @@ export const existingCollectionNewData = async (
     0.2
   ).toFixed(3);
 
-  await ctx.editMessageText(
-    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: transferTONMenu(receiverAddress, tonAmount),
-    }
+  const { transferMenu, basicUrl } = transferTONMenu(
+    receiverAddress,
+    tonAmount
   );
+  const qrcodeBuffer = await generateQRCode(basicUrl);
+
+  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    parse_mode: 'HTML',
+    reply_markup: transferMenu,
+  });
 
   await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
@@ -541,13 +554,17 @@ export const existingCollectionOldData = async (
     0.2
   ).toFixed(3);
 
-  await ctx.reply(
-    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: transferTONMenu(receiverAddress, tonAmount),
-    }
+  const { transferMenu, basicUrl } = transferTONMenu(
+    receiverAddress,
+    tonAmount
   );
+  const qrcodeBuffer = await generateQRCode(basicUrl);
+
+  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    parse_mode: 'HTML',
+    reply_markup: transferMenu,
+  });
 
   await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,

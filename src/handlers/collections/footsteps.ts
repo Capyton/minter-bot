@@ -1,5 +1,5 @@
 import { hydrate } from '@grammyjs/hydrate';
-import { InlineKeyboard } from 'grammy';
+import { InlineKeyboard, InputFile } from 'grammy';
 import { Address } from 'ton-core';
 import { NftCollection } from '@/contracts/NftCollection';
 import {
@@ -13,6 +13,7 @@ import { Context, Conversation } from '@/types';
 import { mintItems } from '@/utils/mintCollection';
 import { openWallet } from '@/utils/wallet';
 import { createMetadataFile } from '@/utils/metadata';
+import { generateQRCode } from '@/utils/qr';
 import { messageTemplate } from '.';
 
 export const getAddressesFromText = async (
@@ -86,13 +87,17 @@ export const mintNewFootstepSbt = async (
     0.2
   ).toFixed(3);
 
-  await ctx.reply(
-    `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: transferTONMenu(receiverAddress, tonAmount),
-    }
+  const { transferMenu, basicUrl } = transferTONMenu(
+    receiverAddress,
+    tonAmount
   );
+  const qrcodeBuffer = await generateQRCode(basicUrl);
+
+  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
+    parse_mode: 'HTML',
+    reply_markup: transferMenu,
+  });
 
   await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
