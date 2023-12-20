@@ -513,9 +513,10 @@ export const existingCollectionOldData = async (
   const fetchingLastNftMetadataMsg = await ctx.reply(
     'Fetching information about last nft...'
   );
-  const { description, name, image } = await NftCollection.getLastNftMetadata(
+  const { metadata, metadataURL } = await NftCollection.getLastNftMetadata(
     collectionAddress
   );
+  const { description, name, image } = metadata;
   const nextItemIndex =
     (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
 
@@ -575,7 +576,14 @@ export const existingCollectionOldData = async (
     reply_markup: new InlineKeyboard(),
   });
 
-  await mintItems(ctx, wallet, addresses, collectionAddress, nextItemIndex);
+  await mintItems(
+    ctx,
+    wallet,
+    addresses,
+    collectionAddress,
+    nextItemIndex,
+    metadataURL.split('/').pop()
+  );
   await ctx.reply('Would you like to continue?', {
     reply_markup: baseFlowMenu,
   });

@@ -279,7 +279,7 @@ export class NftCollection {
     const response = await fetch(metadataURL);
     const metadata = await response.json();
 
-    return metadata;
+    return { metadata, metadataURL };
   }
 
   static async isOwner(
