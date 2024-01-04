@@ -12,8 +12,6 @@ import {
   adminHelpHandler,
   newCollection,
   newEmptyCollection,
-  existingCollectionNewData,
-  existingCollectionOldData,
   addUserToWhitelist,
   deleteUserFromWhitelist,
   showWhitelist,
@@ -25,9 +23,13 @@ import { adminUser, knownUser } from '@/filters';
 import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
-import { mintNewFootstepSbt } from './handlers/collections/footsteps';
-import { saveAdminUsernames } from './middlewares/usernames';
-import { revokeSbtRewardHandler } from './handlers/revokeReward';
+import { mintNewFootstepSbt } from '@/handlers/collections/footsteps';
+import { saveAdminUsernames } from '@/middlewares/usernames';
+import { revokeSbtRewardHandler } from '@/handlers/revokeReward';
+import {
+  mintItemsByNewData,
+  mintItemsByPreviousData,
+} from '@/handlers/collections/createdCollections';
 
 dotenv.config();
 
@@ -80,15 +82,10 @@ async function runApp() {
   bot
     .use(createConversation(newEmptyCollection, 'new-empty-collection'))
     .use(createConversation(newCollection, 'new-collection'))
+    .use(createConversation(mintItemsByNewData, 'existing-collection-new-data'))
     .use(
       createConversation(
-        existingCollectionNewData,
-        'existing-collection-new-data'
-      )
-    )
-    .use(
-      createConversation(
-        existingCollectionOldData,
+        mintItemsByPreviousData,
         'existing-collection-old-data'
       )
     )
@@ -129,20 +126,6 @@ async function runApp() {
   bot.filter(adminUser, adminHelpHandler);
   bot.filter(knownUser, knownUserHelpHandler);
 
-  bot.catch((err) => {
-    const ts = Date.now();
-
-    const date_ob = new Date(ts);
-    const date = date_ob.getDate();
-    const month = date_ob.getMonth() + 1;
-    const year = date_ob.getFullYear();
-    const hours = date_ob.getHours();
-    const minutes = date_ob.getMinutes();
-
-    console.error(
-      `${year}-${month}-${date} ${hours}:${minutes}  Error occurred: ${err}`
-    );
-  });
 
   await bot.init();
 

@@ -1,42 +1,15 @@
 import { hydrate } from '@grammyjs/hydrate';
-import { InlineKeyboard, InputFile } from 'grammy';
+import { InlineKeyboard } from 'grammy';
 import { Address } from 'ton-core';
 import { NftCollection } from '@/contracts/NftCollection';
-import {
-  baseFlowMenu,
-  cancelMenu,
-  confirmMintingMenu,
-  transactionSentMenu,
-  transferTONMenu,
-} from '@/menus';
+import { baseFlowMenu, confirmMintingMenu } from '@/menus';
 import { Context, Conversation } from '@/types';
 import { mintItems } from '@/utils/mintCollection';
-import { openWallet } from '@/utils/wallet';
 import { createMetadataFile } from '@/utils/metadata';
-import { generateQRCode } from '@/utils/qr';
-import { messageTemplate } from '.';
-
-export const getAddressesFromText = async (
-  conversation: Conversation,
-  ctx: Context,
-  text: string
-): Promise<Address[]> => {
-  await ctx.reply(text, { reply_markup: cancelMenu });
-  const addressesList = await conversation.form.text();
-
-  try {
-    const addresses: Address[] = [];
-    for (const address of addressesList.replace(' ', '').split(',')) {
-      if (address) {
-        addresses.push(Address.parse(address));
-      }
-    }
-    return addresses;
-  } catch {
-    await ctx.reply('Check correctness of your addresses and try again.');
-    return await getAddressesFromText(conversation, ctx, text);
-  }
-};
+import { tonClient } from '@/utils/toncenter-client';
+import { getAddressesFromText } from '../addresses';
+import { startPaymentFlow } from '../payment';
+import { messageTemplate } from './newCollections';
 
 export const mintNewFootstepSbt = async (
   conversation: Conversation,
@@ -75,35 +48,8 @@ export const mintNewFootstepSbt = async (
     reply_markup: confirmMintingMenu,
   });
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
+  ctx = await startPaymentFlow(conversation, ctx, addresses);
 
-  const wallet = await openWallet(
-    process.env.MNEMONIC!.split(' '),
-    Boolean(process.env.TESTNET!)
-  );
-  const receiverAddress = wallet.contract.address.toString();
-  const tonAmount = (
-    addresses.length * (0.035 + 0.03) +
-    Math.ceil(addresses.length / 6) * 0.05 +
-    0.2
-  ).toFixed(3);
-
-  const { transferMenu, basicUrl } = transferTONMenu(
-    receiverAddress,
-    tonAmount
-  );
-  const qrcodeBuffer = await generateQRCode(basicUrl);
-
-  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
-    caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
-    parse_mode: 'HTML',
-    reply_markup: transferMenu,
-  });
-
-  await ctx.reply('Click this button when you send the transaction', {
-    reply_markup: transactionSentMenu,
-  });
-
-  ctx = await conversation.waitForCallbackQuery('transaction-sent');
   await ctx.editMessageText('Start minting...', {
     reply_markup: new InlineKeyboard(),
   });
@@ -123,10 +69,9 @@ export const mintNewFootstepSbt = async (
     collectionPhoto
   );
   const nextItemIndex =
-    (await NftCollection.getLastNftIndex(collectionAddress)) + 1;
+    (await NftCollection.getLastNftIndex(collectionAddress, tonClient)) + 1;
   await mintItems(
     ctx,
-    wallet,
     addresses,
     collectionAddress,
     nextItemIndex,

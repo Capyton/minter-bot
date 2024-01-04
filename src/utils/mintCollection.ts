@@ -1,22 +1,19 @@
 import { Address } from 'ton-core';
 import { CollectionData, NftCollection } from '@/contracts/NftCollection';
 import { sleep, waitSeqno } from '@/utils/delay';
-import { OpenedWallet, openWallet } from '@/utils/wallet';
+import { openWallet } from '@/utils/wallet';
 import { Context } from '@/types';
-
-type Props = {
-  collectionData: CollectionData;
-  wallet: OpenedWallet;
-};
+import { tonClient } from './toncenter-client';
 
 export const mintCollection = async (
   ctx: Context,
-  { collectionData, wallet }: Props
+  collectionData: CollectionData
 ): Promise<NftCollection> => {
-  const collection = new NftCollection(collectionData);
+  const minterWallet = await openWallet();
+  const collection = new NftCollection(collectionData, minterWallet, tonClient);
 
-  const seqno = await collection.deploy(wallet);
-  await waitSeqno(seqno, wallet);
+  const seqno = await collection.deploy();
+  await waitSeqno(seqno, minterWallet);
 
   await ctx.reply(
     `Collection deployed to <a href='https://getgems.io/collection/${collection.address}'>${collection.address}</a>`,
@@ -27,16 +24,12 @@ export const mintCollection = async (
 
 export const mintItems = async (
   ctx: Context,
-  wallet: OpenedWallet,
   addresses: Address[],
   collectionAddress: Address,
   startIndex = 0,
   contentUrl = 'item.json'
 ) => {
-  const minterWallet = await openWallet(
-    process.env.MNEMONIC!.split(' '),
-    Boolean(process.env.TESTNET!)
-  );
+  const minterWallet = await openWallet();
 
   const items = [];
 
@@ -66,11 +59,11 @@ export const mintItems = async (
     while (!isBatchDeployed) {
       try {
         const seqno = await NftCollection.deployItemsBatch(
-          wallet,
           chunk,
-          collectionAddress
+          collectionAddress,
+          minterWallet
         );
-        await waitSeqno(seqno, wallet);
+        await waitSeqno(seqno, minterWallet);
         isBatchDeployed = true;
       } catch (e) {
         console.error(e);

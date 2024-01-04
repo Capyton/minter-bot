@@ -1,4 +1,3 @@
-import { TonClient } from 'ton';
 import {
   Address,
   Cell,
@@ -11,7 +10,9 @@ import {
   Dictionary,
   DictionaryValue,
 } from 'ton-core';
+import { TonClient } from 'ton';
 import { encodeOffChainContent } from '@/utils/metadata';
+import { tonClient } from '@/utils/toncenter-client';
 import { OpenedWallet } from '../utils/wallet';
 
 export type CollectionData = {
@@ -60,17 +61,26 @@ const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
 };
 
 export class NftCollection {
+  public wallet: OpenedWallet;
+  public tonClient: TonClient;
   private data: CollectionData;
 
-  constructor(data: CollectionData) {
+  constructor(
+    data: CollectionData,
+    wallet: OpenedWallet,
+    tonClient: TonClient
+  ) {
     this.data = data;
+    this.wallet = wallet;
+    this.tonClient = tonClient;
   }
 
-  public async deploy(wallet: OpenedWallet): Promise<number> {
-    const seqno = await wallet.contract.getSeqno();
-    await wallet.contract.sendTransfer({
+  public async deploy(): Promise<number> {
+    const seqno = await this.wallet.contract.getSeqno();
+
+    await this.wallet.contract.sendTransfer({
       seqno,
-      secretKey: wallet.keyPair.secretKey,
+      secretKey: this.wallet.keyPair.secretKey,
       messages: [
         internal({
           value: '0.05',
@@ -84,9 +94,9 @@ export class NftCollection {
   }
 
   static async deployItemsBatch(
-    wallet: OpenedWallet,
     params: CollectionMintItemInput[],
-    address: Address
+    address: Address,
+    wallet: OpenedWallet
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
     const amount = (0.03 * params.length + 0.1).toFixed(3);
@@ -106,9 +116,9 @@ export class NftCollection {
   }
 
   static async topUpBalance(
-    wallet: OpenedWallet,
     nftAmount: number,
-    collectionAddress: Address
+    collectionAddress: Address,
+    wallet: OpenedWallet
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
 
@@ -129,11 +139,8 @@ export class NftCollection {
     return seqno;
   }
 
-  public async changeOwnership(
-    wallet: OpenedWallet,
-    newOwner: Address
-  ): Promise<number> {
-    const seqno = await wallet.contract.getSeqno();
+  public async changeOwnership(newOwner: Address): Promise<number> {
+    const seqno = await this.wallet.contract.getSeqno();
     const body = beginCell();
 
     body.storeUint(3, 32);
@@ -142,9 +149,9 @@ export class NftCollection {
 
     const amount = '0.03';
 
-    await wallet.contract.sendTransfer({
+    await this.wallet.contract.sendTransfer({
       seqno,
-      secretKey: wallet.keyPair.secretKey,
+      secretKey: this.wallet.keyPair.secretKey,
       messages: [
         internal({
           value: amount,
@@ -158,16 +165,7 @@ export class NftCollection {
     return seqno;
   }
 
-  static async getName(collectionAddress: Address) {
-    const toncenterBaseEndpoint: string = process.env.TESTNET!
-      ? 'https://testnet.toncenter.com'
-      : 'https://toncenter.com';
-
-    const client = new TonClient({
-      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
-      apiKey: process.env.TONCENTER_API_KEY,
-    });
-
+  static async getName(collectionAddress: Address, client: TonClient) {
     const collectionData = await client.runMethod(
       collectionAddress,
       'get_collection_data'
@@ -197,17 +195,8 @@ export class NftCollection {
     return body.endCell();
   }
 
-  static async getImage(collectionAddress: Address) {
-    const toncenterBaseEndpoint: string = process.env.TESTNET!
-      ? 'https://testnet.toncenter.com'
-      : 'https://toncenter.com';
-
-    const client = new TonClient({
-      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
-      apiKey: process.env.TONCENTER_API_KEY,
-    });
-
-    const collectionData = await client.runMethod(
+  static async getImage(collectionAddress: Address, tonClient: TonClient) {
+    const collectionData = await tonClient.runMethod(
       collectionAddress,
       'get_collection_data'
     );
@@ -220,16 +209,11 @@ export class NftCollection {
     return data.image;
   }
 
-  static async getLastNftIndex(collectionAddress: Address) {
-    const toncenterBaseEndpoint: string = process.env.TESTNET!
-      ? 'https://testnet.toncenter.com'
-      : 'https://toncenter.com';
-
-    const client = new TonClient({
-      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
-      apiKey: process.env.TONCENTER_API_KEY,
-    });
-    const collectionData = await client.runMethod(
+  static async getLastNftIndex(
+    collectionAddress: Address,
+    tonClient: TonClient
+  ) {
+    const collectionData = await tonClient.runMethod(
       collectionAddress,
       'get_collection_data'
     );
@@ -237,30 +221,30 @@ export class NftCollection {
     return lastNftIndex;
   }
 
-  static async getLastNftMetadata(collectionAddress: Address) {
-    const toncenterBaseEndpoint: string = process.env.TESTNET!
-      ? 'https://testnet.toncenter.com'
-      : 'https://toncenter.com';
-
-    const client = new TonClient({
-      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
-      apiKey: process.env.TONCENTER_API_KEY,
-    });
-
-    const lastNftIndex = await NftCollection.getLastNftIndex(collectionAddress);
+  static async getLastNftMetadata(
+    collectionAddress: Address,
+    tonClient: TonClient
+  ) {
+    const lastNftIndex = await NftCollection.getLastNftIndex(
+      collectionAddress,
+      tonClient
+    );
 
     const lastNftAddress = (
-      await client.runMethod(collectionAddress, 'get_nft_address_by_index', [
+      await tonClient.runMethod(collectionAddress, 'get_nft_address_by_index', [
         { type: 'int', value: BigInt(lastNftIndex) },
       ])
     ).stack.readAddress();
 
-    const lastNftData = await client.runMethod(lastNftAddress, 'get_nft_data');
+    const lastNftData = await tonClient.runMethod(
+      lastNftAddress,
+      'get_nft_data'
+    );
     lastNftData.stack.skip(4);
 
     const lastNftContent = lastNftData.stack.readCell();
 
-    const nftContent = await client.runMethod(
+    const nftContent = await tonClient.runMethod(
       collectionAddress,
       'get_nft_content',
       [
@@ -284,34 +268,25 @@ export class NftCollection {
 
   static async isOwner(
     collectionAddress: Address,
-    address: Address
+    walletAddress: Address
   ): Promise<boolean> {
-    const toncenterBaseEndpoint: string = process.env.TESTNET!
-      ? 'https://testnet.toncenter.com'
-      : 'https://toncenter.com';
-
-    const client = new TonClient({
-      endpoint: `${toncenterBaseEndpoint}/api/v2/jsonRPC`,
-      apiKey: process.env.TONCENTER_API_KEY,
-    });
-
     try {
-      const collectionData = await client.runMethod(
+      const collectionData = await tonClient.runMethod(
         collectionAddress,
         'get_collection_data'
       );
       collectionData.stack.pop();
       collectionData.stack.pop();
       const ownerAddress = collectionData.stack.readAddress();
-      return ownerAddress.equals(address);
+      return ownerAddress.equals(walletAddress);
     } catch {
       return false;
     }
   }
 
   static async revokeSbtReward(
-    wallet: OpenedWallet,
-    sbtAddress: Address
+    sbtAddress: Address,
+    wallet: OpenedWallet
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
     const body = beginCell();
