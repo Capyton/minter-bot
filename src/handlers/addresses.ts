@@ -1,11 +1,37 @@
 import path from 'path';
+import * as fs from 'fs/promises';
 import { InputFile } from 'grammy';
 import { Address } from 'ton-core';
 import { Context, Conversation } from '@/types';
-import { downloadFile, getAddressesFromFile } from '@/utils/files';
+import { downloadFile } from '@/utils/files';
 import { cancelMenu } from '@/menus';
 import { openWallet } from '@/utils/wallet';
 import { NftCollection } from '@/contracts/NftCollection';
+
+export function isAddress(address: string) {
+  try {
+    Address.parse(address);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const parseAddresses = (text: string): Address[] => {
+  const addressesString: Set<string> = new Set();
+  const addresses: Address[] = [];
+
+  for (const stringAddress of text.split('\n')) {
+    if (isAddress(stringAddress)) {
+      const address = Address.parse(stringAddress);
+      if (!addressesString.has(address.toRawString())) {
+        addressesString.add(address.toRawString());
+        addresses.push(address);
+      }
+    }
+  }
+  return addresses;
+};
 
 export const getCollectionAddress = async (
   ctx: Context,
@@ -18,7 +44,7 @@ export const getCollectionAddress = async (
 
   const collection = await conversation.waitFor(':text');
   if (
-    !Address.isAddress(collection.message!.text) ||
+    !isAddress(collection.message!.text) ||
     !(await NftCollection.isOwner(
       Address.parse(collection.message!.text),
       minterWallet.contract.address
@@ -34,39 +60,42 @@ export const getCollectionAddress = async (
   return Address.parse(collection.message!.text);
 };
 
-export const getAddressesFile = async (
-  conversation: Conversation,
-  ctx: Context
-): Promise<Context> => {
-  const file = await conversation.wait();
-
-  if (file.message?.document) {
-    return file;
-  }
-
-  await ctx.reply('File with addresses must be a file');
-
-  return await getAddressesFile(conversation, ctx);
-};
-
 export const getAddresses = async (
   conversation: Conversation,
   ctx: Context
 ): Promise<Address[]> => {
+  const explanationCaptionText = `Upload the file with addresses which must receive NFT (example above)
+
+Or just send a text with the addresses separated by a new line.
+
+<b>Note that you can't send more than 82 addresses using simple text message.</b>
+
+See an example of a correct text message with addresses below:`;
+
   await ctx.replyWithDocument(new InputFile('./src/assets/example.txt'), {
-    caption:
-      'Upload the file with addresses which must receive NFT (example above)',
+    caption: explanationCaptionText,
+    reply_markup: cancelMenu,
+    parse_mode: 'HTML',
   });
 
-  const file = await getAddressesFile(conversation, ctx);
+  const exampleText = `
+UQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqEBI
+UQBmzW4wYlFW0tiBgj5sP1CgSlLdYs-VpjPWM7oPYPYWQBqW
+EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2
+  `;
+  await ctx.reply(exampleText);
 
-  if (file.message?.document) {
-    const pathname = await downloadFile(file, 'document', 'addresses');
-    const addresses = await getAddressesFromFile(
+  const responseCtx = await conversation.wait();
+
+  if (responseCtx.message?.document) {
+    const pathname = await downloadFile(responseCtx, 'document', 'addresses');
+    const addressesFromFile = await fs.readFile(
       path.join(pathname, 'addresses')
     );
-
-    return addresses;
+    return parseAddresses(addressesFromFile.toString());
+  } else if (responseCtx.message?.text) {
+    const addressesText = responseCtx.message.text;
+    return parseAddresses(addressesText);
   }
 
   return await getAddresses(conversation, ctx);
@@ -79,9 +108,8 @@ export const getAddressesFromText = async (
 ): Promise<Address[]> => {
   await ctx.reply(text, { reply_markup: cancelMenu });
   const addressesList = await conversation.form.text();
-
+  const addresses: Address[] = [];
   try {
-    const addresses: Address[] = [];
     for (const address of addressesList.replace(' ', '').split(',')) {
       if (address) {
         addresses.push(Address.parse(address));

@@ -1,7 +1,5 @@
 import path from 'path';
 import { escape } from 'querystring';
-import * as fs from 'fs/promises';
-import { Address } from 'ton-core';
 import download from 'download';
 import AWS from 'aws-sdk';
 import { Context } from '@/types';
@@ -49,26 +47,6 @@ export const downloadFile = async (
   }
 
   return pathname;
-};
-
-export const getAddressesFromFile = async (
-  filename: string
-): Promise<Address[]> => {
-  const addressesString: Set<string> = new Set();
-  const addresses: Address[] = [];
-
-  const data = await fs.readFile(filename);
-
-  for (const stringAddress of data.toString().split('\n')) {
-    if (stringAddress) {
-      const address = Address.parse(stringAddress);
-      if (!addressesString.has(address.toRawString())) {
-        addressesString.add(address.toRawString());
-        addresses.push(address);
-      }
-    }
-  }
-  return addresses;
 };
 
 export async function uploadFileToS3(

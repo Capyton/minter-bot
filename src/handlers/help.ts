@@ -10,10 +10,13 @@ Unfortunately, you do not have a permission to use it right now.
   `
   );
 
-export const knownUserHelpHandler = async (ctx: Context) =>
+export const knownUserHelpHandler = async (ctx: Context) => {
+  await ctx.conversation.exit();
   await ctx.reply('Hey there :)', { reply_markup: baseFlowMenu });
+};
 
-export const adminHelpHandler = async (ctx: Context) =>
+export const adminHelpHandler = async (ctx: Context) => {
+  await ctx.conversation.exit();
   await ctx.reply(
     `
 Hey there :)
@@ -32,6 +35,7 @@ Note: you can get user's telegram id in @username_to_id_bot if needed.
   `,
     { reply_markup: baseFlowMenu, parse_mode: 'HTML' }
   );
+};
 
 export const cancelHandler = async (ctx: Context) => {
   await ctx.conversation.exit();

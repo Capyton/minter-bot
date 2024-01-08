@@ -40,7 +40,7 @@ export const mintItemsByNewData = async (
   const addresses = await getAddresses(conversation, ctx);
 
   const text =
-    'Please confirm minting of the new SBT Items based on this data\n' +
+    `Please confirm minting of the new ${addresses.length} SBT Items based on this data\n` +
     messageTemplate('Item', name, description);
   await ctx.reply(text, {
     parse_mode: 'HTML',
@@ -128,7 +128,7 @@ export const mintItemsByPreviousData = async (
   await fetchingLastNftMetadataMsg.delete();
   const addresses = await getAddresses(conversation, ctx);
   const text =
-    'Please confirm minting of the new SBT Items based on this data\n' +
+    `Please confirm minting of the new ${addresses.length} SBT Items based on this data\n` +
     messageTemplate('Item', name, description);
 
   if (image.endsWith('.mp4')) {

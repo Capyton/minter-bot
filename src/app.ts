@@ -126,7 +126,6 @@ async function runApp() {
   bot.filter(adminUser, adminHelpHandler);
   bot.filter(knownUser, knownUserHelpHandler);
 
-
   await bot.init();
 
   run(bot);

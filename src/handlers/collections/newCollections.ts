@@ -73,7 +73,7 @@ export const newEmptyCollection = async (
     "Upload the collection's cover image:\n\nRecommended image size: 2880x680 pixels.\nRecommended format: png, jpg, webp, svg.",
     {
       reply_markup: new InlineKeyboard().text(
-        'Same as the collection message',
+        'Same as the collection image',
         'collection-as-cover'
       ),
     }
@@ -110,7 +110,7 @@ export const newEmptyCollection = async (
   await descriptionCtx.deleteMessage();
 
   const text =
-    'Please confirm minting of the new NFT collection based on this data\n' +
+    'Please confirm minting of the new empty NFT collection based on this data\n' +
     messageTemplate('Collection', name, description);
 
   await ctx.reply(text, {
@@ -175,7 +175,7 @@ export const newCollection = async (
     "Upload the collection's cover image:\n\nRecommended image size: 2880x680 pixels.\nRecommended format: png, jpg, webp, svg.",
     {
       reply_markup: new InlineKeyboard().text(
-        'Same as the collection message',
+        'Same as the collection image',
         'collection-as-cover'
       ),
     }
@@ -220,7 +220,7 @@ export const newCollection = async (
   const addresses = await getAddresses(conversation, ctx);
 
   const text =
-    'Please confirm minting of the new NFT collection based on this data\n' +
+    `Please confirm minting of the new NFT collection with ${addresses.length} SBT items based on this data\n` +
     messageTemplate('Collection', name, description) +
     messageTemplate('Item', itemName, itemDescription);
   await ctx.reply(text, {
