@@ -165,18 +165,6 @@ export class NftCollection {
     return seqno;
   }
 
-  static async getName(collectionAddress: Address, client: TonClient) {
-    const collectionData = await client.runMethod(
-      collectionAddress,
-      'get_collection_data'
-    );
-    collectionData.stack.readNumber();
-    const collectionMetadataURL = collectionData.stack.readString();
-    const response = await fetch(collectionMetadataURL);
-    const metadata = await response.json();
-    return metadata.name;
-  }
-
   static createBatchMintBody(params: {
     items: CollectionMintItemInput[];
   }): Cell {
@@ -282,6 +270,24 @@ export class NftCollection {
     } catch {
       return false;
     }
+  }
+
+  static async getMetadataFolderName(
+    client: TonClient,
+    collectionAddress: Address
+  ): Promise<string> {
+    const collectionData = await client.runMethod(
+      collectionAddress,
+      'get_collection_data'
+    );
+    collectionData.stack.readNumber();
+    const collectionMetadataURL = collectionData.stack.readString();
+    const baseCollectionMetadataURL = collectionMetadataURL.split(
+      '/collection.json',
+      1
+    )[0];
+    const folderName = baseCollectionMetadataURL.split('amazonaws.com/')[1];
+    return folderName;
   }
 
   static async revokeSbtReward(

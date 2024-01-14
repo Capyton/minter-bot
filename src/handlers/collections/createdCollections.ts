@@ -8,7 +8,7 @@ import { Context, Conversation } from '@/types';
 import { mintItems } from '@/utils/mintCollection';
 import { tonClient } from '@/utils/toncenter-client';
 import { downloadFile } from '@/utils/files';
-import { createMetadataFile } from '@/utils/metadata';
+import { createItemMetadataFile } from '@/utils/metadata';
 import { getAddresses, getCollectionAddress } from '../addresses';
 import { startPaymentFlow } from '../payment';
 import { newItem } from './newItem';
@@ -64,11 +64,6 @@ export const mintItemsByNewData = async (
     imageFilename
   );
 
-  const collectionName = await NftCollection.getName(
-    collectionAddress,
-    tonClient
-  );
-
   const metadataFilename = randomUUID() + '.json';
   const nextItemIndex =
     (await NftCollection.getLastNftIndex(collectionAddress, tonClient)) + 1;
@@ -77,14 +72,18 @@ export const mintItemsByNewData = async (
     collectionAddress,
     tonClient
   );
+  const folderName = await NftCollection.getMetadataFolderName(
+    tonClient,
+    collectionAddress
+  );
 
-  await createMetadataFile(
+  await createItemMetadataFile(
     {
       name: name,
       description: description,
       imagePath: path.join(imagePathname, imageFilename),
     },
-    collectionName,
+    folderName,
     randomUUID(),
     metadataFilename,
     undefined,

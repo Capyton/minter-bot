@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import { beginCell, Cell } from 'ton-core';
 import { uploadFileToS3 } from './files';
+import { randomString } from './random';
 
 type CollectionMetadata = {
   name: string;
@@ -15,9 +16,9 @@ type ItemMetadata = {
   imagePath: string | undefined;
 };
 
-export async function createMetadataFile(
+export async function createItemMetadataFile(
   itemsData: ItemMetadata,
-  collectionName: string,
+  folderName: string,
   itemImageFilename = 'itemImage',
   metadataFilename = 'item.json',
   itemPhoto: string | undefined = undefined,
@@ -33,7 +34,7 @@ export async function createMetadataFile(
     itemPhoto = await uploadFileToS3(
       imageContent,
       itemImageFilename,
-      collectionName
+      folderName
     );
   }
   let metadata = {};
@@ -56,7 +57,7 @@ export async function createMetadataFile(
   const fileURL = await uploadFileToS3(
     metadataContent,
     metadataFilename,
-    collectionName
+    folderName
   );
   return fileURL;
 }
@@ -64,6 +65,8 @@ export async function createMetadataFile(
 export async function createCollectionMetadata(
   collectionData: CollectionMetadata
 ) {
+  const folderName = `${collectionData.name}-${randomString()}`;
+
   const collectionImageContent = await readFile(collectionData.imagePathname);
   const collectionCoverImageContent = await readFile(
     collectionData.coverImagePathname
@@ -72,12 +75,12 @@ export async function createCollectionMetadata(
   const collectionImageURL = await uploadFileToS3(
     collectionImageContent,
     'logo.jpg',
-    collectionData.name
+    folderName
   );
   const collectionCoverImageURL = await uploadFileToS3(
     collectionCoverImageContent,
     'cover.jpg',
-    collectionData.name
+    folderName
   );
 
   const metadata = {
@@ -90,9 +93,9 @@ export async function createCollectionMetadata(
   const fileURL = await uploadFileToS3(
     metadataContent,
     'collection.json',
-    collectionData.name
+    folderName
   );
-  return { url: fileURL, data: metadata };
+  return { collectionContent: { url: fileURL, data: metadata }, folderName };
 }
 function bufferToChunks(buff: Buffer, chunkSize: number) {
   const chunks: Buffer[] = [];

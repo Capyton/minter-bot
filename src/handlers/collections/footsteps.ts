@@ -5,7 +5,7 @@ import { NftCollection } from '@/contracts/NftCollection';
 import { baseFlowMenu, confirmMintingMenu } from '@/menus';
 import { Context, Conversation } from '@/types';
 import { mintItems } from '@/utils/mintCollection';
-import { createMetadataFile } from '@/utils/metadata';
+import { createItemMetadataFile } from '@/utils/metadata';
 import { tonClient } from '@/utils/toncenter-client';
 import { getAddressesFromText } from '../addresses';
 import { startPaymentFlow } from '../payment';
@@ -56,7 +56,7 @@ export const mintNewFootstepSbt = async (
   const metadataFilename = `${footstepIndex}.json`;
   const footstepVideo =
     'https://sbt-bot-minter.s3.amazonaws.com/TON%20Bounties%20Contributors/255d1591-cb28-4f51-a975-ae1e5a6330db.mp4';
-  await createMetadataFile(
+  await createItemMetadataFile(
     {
       name,
       description,

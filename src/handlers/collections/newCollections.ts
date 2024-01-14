@@ -9,7 +9,10 @@ import { Context, Conversation } from '@/types';
 import { downloadFile } from '@/utils/files';
 import { mintCollection, mintItems } from '@/utils/mintCollection';
 import { baseFlowMenu, cancelMenu, confirmMintingMenu } from '@/menus';
-import { createCollectionMetadata, createMetadataFile } from '@/utils/metadata';
+import {
+  createCollectionMetadata,
+  createItemMetadataFile,
+} from '@/utils/metadata';
 import { openWallet } from '@/utils/wallet';
 import { getAddresses } from '../addresses';
 import { startPaymentFlow } from '../payment';
@@ -135,7 +138,7 @@ export const newEmptyCollection = async (
     coverImageFilename
   );
 
-  const collectionContent = await createCollectionMetadata({
+  const { collectionContent, folderName } = await createCollectionMetadata({
     name,
     description,
     imagePathname: path.join(imagePathname, imageFilename),
@@ -229,9 +232,7 @@ export const newCollection = async (
   });
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-  await ctx.editMessageText('Start minting...', {
-    reply_markup: new InlineKeyboard(),
-  });
+
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
   await ctx.editMessageText('Start minting...', {
@@ -258,20 +259,20 @@ export const newCollection = async (
     coverImageFilename
   );
 
-  const collectionContent = await createCollectionMetadata({
+  const { collectionContent, folderName } = await createCollectionMetadata({
     name,
     description,
     imagePathname: path.join(imagePathname, imageFilename),
     coverImagePathname: path.join(coverImagePathname, coverImageFilename),
   });
 
-  const commonContentUrl = await createMetadataFile(
+  const itemContentUrl = await createItemMetadataFile(
     {
       name: itemName,
       description: itemDescription,
       imagePath: path.join(itemImagePathname, itemImageFilename),
     },
-    name,
+    folderName,
     undefined,
     undefined,
     undefined,
@@ -284,7 +285,7 @@ export const newCollection = async (
     royaltyAddress: minterWallet.contract.address,
     nextItemIndex: 0,
     collectionContentUrl: collectionContent.url,
-    commonContentUrl: commonContentUrl.split('item.json')[0],
+    commonContentUrl: itemContentUrl.split('item.json')[0],
   };
 
   const collection = await mintCollection(ctx, collectionData);
