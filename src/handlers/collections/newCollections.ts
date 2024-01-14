@@ -138,7 +138,7 @@ export const newEmptyCollection = async (
     coverImageFilename
   );
 
-  const { collectionContent, folderName } = await createCollectionMetadata({
+  const { collectionContent } = await createCollectionMetadata({
     name,
     description,
     imagePathname: path.join(imagePathname, imageFilename),
