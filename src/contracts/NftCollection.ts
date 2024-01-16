@@ -286,7 +286,9 @@ export class NftCollection {
       '/collection.json',
       1
     )[0];
-    const folderName = baseCollectionMetadataURL.split('amazonaws.com/')[1];
+    const folderName = decodeURI(
+      baseCollectionMetadataURL.split('amazonaws.com/')[1]
+    );
     return folderName;
   }
 
