@@ -1,7 +1,9 @@
 import { InlineKeyboard } from 'grammy';
 import { toNano } from 'ton-core';
+import { loadConfigFromEnv } from '@/config';
+import { Template } from '@/db';
 
-const baseFlowMenu = new InlineKeyboard()
+export const baseFlowMenu = new InlineKeyboard()
   .text('Create new collection', 'new-collection')
   .row()
   .text('Create new empty collection', 'new-empty-collection')
@@ -10,23 +12,46 @@ const baseFlowMenu = new InlineKeyboard()
   .row()
   .text('Mint new Footstep SBT', 'mint-footstep')
   .row()
+  .text('Create new template', 'create-new-template')
+  .row()
+  .text('Use template', 'use-template')
+  .row()
   .text('👨‍🏫 See tutorials', 'tutorials')
   .row()
   // .text('🚫 Revoke SBT reward', 'revoke-sbt-reward')
   // .row()
   .text('Cancel', 'cancel');
 
-const existingCollectionMenu = new InlineKeyboard()
+export const templatesMenu = (templates: Template[], userId: number) => {
+  const menu = new InlineKeyboard();
+  const config = loadConfigFromEnv();
+  for (const template of templates) {
+    if (
+      template.userIds.includes(userId) ||
+      userId === Number(config.bot.adminId)
+    ) {
+      menu.text(template.name, `template-${template.id}`).row();
+    }
+  }
+  return menu;
+};
+
+export const approveNewTemplateMenu = new InlineKeyboard()
+  .text('Confirm', 'approve-new-template')
+  .row()
+  .text('Cancel', 'cancel');
+
+export const existingCollectionMenu = new InlineKeyboard()
   .text('Enter new item data', 'existing-collection-new-data')
   .row()
   .text('Use previous item data', 'existing-collection-old-data');
 
-const confirmMintingMenu = new InlineKeyboard()
+export const confirmMintingMenu = new InlineKeyboard()
   .text('confirm', 'confirm-minting')
   .row()
   .text('cancel', 'cancel');
 
-const transferTONMenu = (receiver: string, amount: string) => {
+export const transferTONMenu = (receiver: string, amount: string) => {
   const baseText = `transfer/${receiver}?amount=${toNano(amount)}`;
   const menu = new InlineKeyboard()
     .url('Tonkeeper', `https://app.tonkeeper.com/${baseText}`)
@@ -36,13 +61,13 @@ const transferTONMenu = (receiver: string, amount: string) => {
   return { transferMenu: menu, basicUrl: `ton://${baseText}` };
 };
 
-const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');
+export const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');
 
-const transactionSentMenu = new InlineKeyboard()
+export const transactionSentMenu = new InlineKeyboard()
   .text('I sent transaction', 'transaction-sent')
   .row();
 
-const tutorialsMenu = new InlineKeyboard()
+export const tutorialsMenu = new InlineKeyboard()
   .url('How to create an SBT collection?', 'https://youtu.be/Jj-zh9aJZMQ')
   .row()
   .url(
@@ -51,13 +76,3 @@ const tutorialsMenu = new InlineKeyboard()
   )
   .row()
   .text('Cancel', 'cancel');
-
-export {
-  baseFlowMenu,
-  confirmMintingMenu,
-  transferTONMenu,
-  transactionSentMenu,
-  existingCollectionMenu,
-  tutorialsMenu,
-  cancelMenu,
-};

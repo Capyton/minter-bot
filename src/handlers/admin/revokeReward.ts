@@ -3,7 +3,7 @@ import { Context, Conversation } from '@/types';
 import { NftCollection } from '@/contracts/NftCollection';
 import { openWallet } from '@/utils/wallet';
 import { waitSeqno } from '@/utils/delay';
-import { getAddressesFromText } from './addresses';
+import { getAddressesFromText } from '../addresses';
 
 export const revokeSbtRewardHandler = async (
   conversation: Conversation,

@@ -115,30 +115,6 @@ export class NftCollection {
     return seqno;
   }
 
-  static async topUpBalance(
-    nftAmount: number,
-    collectionAddress: Address,
-    wallet: OpenedWallet
-  ): Promise<number> {
-    const seqno = await wallet.contract.getSeqno();
-
-    const amount = (nftAmount * (0.035 + 0.03)).toFixed(3);
-    await wallet.contract.sendTransfer({
-      seqno,
-      secretKey: wallet.keyPair.secretKey,
-      messages: [
-        internal({
-          value: amount.toString(),
-          to: collectionAddress.toString({ bounceable: false }),
-          body: new Cell(),
-        }),
-      ],
-      sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-    });
-
-    return seqno;
-  }
-
   public async changeOwnership(newOwner: Address): Promise<number> {
     const seqno = await this.wallet.contract.getSeqno();
     const body = beginCell();

@@ -30,7 +30,7 @@ export const mintItemsByNewData = async (
 
   const infoMsg = await ctx.reply(infoTxt, { parse_mode: 'HTML' });
 
-  const { name, description, image } = await newItem(
+  const { name, description, contentCtx } = await newItem(
     conversation,
     ctx,
     infoMsg,
@@ -54,13 +54,13 @@ export const mintItemsByNewData = async (
     reply_markup: new InlineKeyboard(),
   });
 
-  const fileType = image.message?.document?.mime_type?.includes('video')
+  const fileType = contentCtx.message?.document?.mime_type?.includes('video')
     ? '.mp4'
     : '.jpeg';
   const imageFilename = randomUUID() + fileType;
   const imagePathname = await downloadFile(
-    image,
-    image.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
+    contentCtx,
+    contentCtx.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
     imageFilename
   );
 

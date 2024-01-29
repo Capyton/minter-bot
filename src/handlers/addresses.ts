@@ -42,11 +42,11 @@ export const getCollectionAddress = async (
     reply_markup: cancelMenu,
   });
 
-  const collection = await conversation.waitFor(':text');
+  const collectionAddressCtx = await conversation.waitFor(':text');
   if (
-    !isAddress(collection.message!.text) ||
+    !isAddress(collectionAddressCtx.message!.text) ||
     !(await NftCollection.isOwner(
-      Address.parse(collection.message!.text),
+      Address.parse(collectionAddressCtx.message!.text),
       minterWallet.contract.address
     ))
   ) {
@@ -55,9 +55,9 @@ export const getCollectionAddress = async (
     );
     return await getCollectionAddress(ctx, conversation);
   }
-
+  await collectionAddressCtx.message?.delete();
   await enterCollectionAddrMsg.delete();
-  return Address.parse(collection.message!.text);
+  return Address.parse(collectionAddressCtx.message!.text);
 };
 
 export const getAddresses = async (

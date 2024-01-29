@@ -2,31 +2,43 @@ import { MessageXFragment } from '@grammyjs/hydrate/out/data/message';
 import { type Message } from 'grammy/types';
 import { Context, Conversation } from '@/types';
 
-const getItemImage = async (
+const getItemContent = async (
   conversation: Conversation,
   ctx: Context
 ): Promise<Context> => {
-  const image = await conversation.wait();
+  const contentCtx = await conversation.wait();
 
   if (
-    image.message?.photo ||
-    image.message?.document?.mime_type === 'video/mp4' ||
-    image.message?.document?.mime_type?.includes('image')
+    contentCtx.message?.photo ||
+    contentCtx.message?.document?.mime_type === 'video/mp4' ||
+    contentCtx.message?.document?.mime_type?.includes('image')
   ) {
-    return image;
+    return contentCtx;
   }
 
   await ctx.reply('Check the correctness of the sent file');
 
-  return await getItemImage(conversation, ctx);
+  return await getItemContent(conversation, ctx);
 };
 
 export const newItem = async (
   conversation: Conversation,
   ctx: Context,
   infoMessage?: Message.CommonMessage & MessageXFragment & Message,
-  infoMessageText?: string
+  infoMessageText?: string,
+  forTemplate = false
 ) => {
+  let noteAboutParametersMsg;
+  if (forTemplate) {
+    const parametersExampleText = `
+<b>Note that you can use parameters in your item name or description using $ like this:</b>
+
+<code>Reward for completion bounty $BOUNTY_NUMBER</code>
+`;
+    noteAboutParametersMsg = await ctx.reply(parametersExampleText, {
+      parse_mode: 'HTML',
+    });
+  }
   const enterItemMessage = await ctx.reply('Enter item name');
 
   const nameContext = await conversation.waitFor(':text');
@@ -51,12 +63,15 @@ export const newItem = async (
   });
   await enterDescriptionMsg.delete();
   await descriptionContext.deleteMessage();
+  if (forTemplate && noteAboutParametersMsg) {
+    await noteAboutParametersMsg.delete();
+  }
 
   await ctx.reply(
     "Upload item's image or video as a document (the document cannot weigh more than 25mb)"
   );
 
-  const image = await getItemImage(conversation, ctx);
-
-  return { name, description, image };
+  const contentCtx = await getItemContent(conversation, ctx);
+  const newInfoText = infoMessageText + text;
+  return { name, description, contentCtx, newInfoText };
 };

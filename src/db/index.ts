@@ -19,7 +19,7 @@ export const getDataSource = (config: DatabaseConfig): DataSource => {
     logging: true,
     subscribers: [],
     migrations: [],
-    entities: [User],
+    entities: [User, Template],
   });
 
   return dataSource;
@@ -35,4 +35,31 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true, type: 'varchar', default: null })
   username: string | null;
+}
+
+@Entity()
+export class Template extends BaseEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true, type: 'varchar' })
+  name: string;
+
+  @Column({ type: 'varchar' })
+  collectionAddress: string;
+
+  @Column({ type: 'varchar' })
+  itemName: string;
+
+  @Column({ type: 'varchar' })
+  itemDescription: string;
+
+  @Column({ type: 'varchar' })
+  itemContentURL: string;
+
+  @Column('int', { array: true })
+  userIds: number[];
+
+  @Column('bool', { nullable: true })
+  has_parameters: boolean;
 }

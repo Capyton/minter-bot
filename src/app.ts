@@ -17,15 +17,17 @@ import {
   showWhitelist,
   cancelHandler,
   tutorialsHandler,
+  createNewTemplate,
+  mintNewTemplateItem,
 } from '@/handlers';
 import { Api, Context } from '@/types';
-import { adminUser, knownUser } from '@/filters';
+import { adminUser, knownUser, templateUser, unknonwnUser } from '@/filters';
 import { loadConfigFromEnv } from '@/config';
 import { getDataSource } from '@/db';
 import { DatabaseMiddleware } from '@/db/middleware';
 import { mintNewFootstepSbt } from '@/handlers/collections/footsteps';
 import { saveAdminUsernames } from '@/middlewares/usernames';
-import { revokeSbtRewardHandler } from '@/handlers/revokeReward';
+import { revokeSbtRewardHandler } from '@/handlers/admin/revokeReward';
 import {
   mintItemsByNewData,
   mintItemsByPreviousData,
@@ -68,16 +70,16 @@ async function runApp() {
       })
     )
     .use(hydrate())
-    .use(dbMiddleware.handle.bind(dbMiddleware))
     .use(conversations())
+    .use(dbMiddleware.handle.bind(dbMiddleware))
     .use(saveAdminUsernames);
+  bot.filter(unknonwnUser, anonymousHelpHandler);
 
   bot.callbackQuery('cancel', cancelHandler);
   bot.command('cancel', cancelHandler);
 
   bot.filter(adminUser).command(['help', 'start'], adminHelpHandler);
   bot.filter(knownUser).command(['help', 'start'], knownUserHelpHandler);
-  bot.command(['help', 'start'], anonymousHelpHandler);
 
   bot
     .use(createConversation(newEmptyCollection, 'new-empty-collection'))
@@ -90,12 +92,27 @@ async function runApp() {
       )
     )
     .use(createConversation(mintNewFootstepSbt, 'mint-footstep'))
-    .use(createConversation(revokeSbtRewardHandler, 'revoke-sbt-reward'));
+    .use(createConversation(revokeSbtRewardHandler, 'revoke-sbt-reward'))
+    .use(createConversation(createNewTemplate, 'create-new-template'))
+    .use(createConversation(mintNewTemplateItem, 'use-template'));
+
+  bot
+    .filter(templateUser)
+    .command(
+      ['help', 'start'],
+      async (ctx) => await ctx.conversation.enter('use-template')
+    );
 
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('list', showWhitelist);
   bot.filter(adminUser).command('add', addUserToWhitelist);
   bot.filter(adminUser).command('delete', deleteUserFromWhitelist);
+  bot
+    .filter(adminUser)
+    .callbackQuery(
+      'create-new-template',
+      async (ctx) => await ctx.conversation.enter('create-new-template')
+    );
   bot.callbackQuery('tutorials', tutorialsHandler);
 
   const callbackConversationsNames = [
@@ -105,6 +122,7 @@ async function runApp() {
     'existing-collection-new-data',
     'existing-collection-old-data',
     'revoke-sbt-reward',
+    'use-template',
   ];
 
   for (const conversationName of callbackConversationsNames) {

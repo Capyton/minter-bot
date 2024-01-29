@@ -217,7 +217,7 @@ export const newCollection = async (
   const {
     name: itemName,
     description: itemDescription,
-    image: itemImage,
+    contentCtx: itemContentCtx,
   } = await newItem(conversation, ctx, infoMsg, infoText);
 
   const addresses = await getAddresses(conversation, ctx);
@@ -239,13 +239,15 @@ export const newCollection = async (
     reply_markup: new InlineKeyboard(),
   });
 
-  const fileType = itemImage.message?.document?.mime_type?.includes('video')
+  const fileType = itemContentCtx.message?.document?.mime_type?.includes(
+    'video'
+  )
     ? '.mp4'
     : '.jpeg';
   const itemImageFilename = randomUUID() + fileType;
   const itemImagePathname = await downloadFile(
-    itemImage,
-    itemImage.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
+    itemContentCtx,
+    itemContentCtx.message?.document ? 'document' : 'photo', // TODO: put this validation into the function
     itemImageFilename
   );
 

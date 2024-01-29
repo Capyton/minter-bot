@@ -1,4 +1,4 @@
 export * from './collections';
-export * from './help';
-export * from './whitelist';
+export * from './start';
+export * from './admin';
 export * from './tutorials';
