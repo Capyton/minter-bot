@@ -1,5 +1,5 @@
 import { InputFile } from 'grammy';
-import { Address } from 'ton-core';
+import { Address, fromNano } from 'ton-core';
 import { transactionSentMenu, transferTONMenu } from '@/menus';
 import { openWallet } from '@/utils/wallet';
 import { generateQRCode } from '@/utils/qr';
@@ -18,6 +18,12 @@ export const startPaymentFlow = async (
     Math.ceil(addresses.length / 6) * 0.12 +
     0.05
   ).toFixed(3);
+
+  const currentBalance = fromNano(await wallet.contract.getBalance());
+
+  if (parseFloat(currentBalance) > parseFloat(tonAmount)) {
+    return ctx;
+  }
 
   const { transferMenu, basicUrl } = transferTONMenu(
     receiverAddress,
