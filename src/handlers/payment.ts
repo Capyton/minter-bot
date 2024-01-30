@@ -12,11 +12,12 @@ export const startPaymentFlow = async (
 ) => {
   const wallet = await openWallet();
   const receiverAddress = wallet.contract.address.toString();
+
   const tonAmount = (
-    addresses.length * (0.035 + 0.03) +
-    Math.ceil(addresses.length / 6) * 0.05 +
-    0.05
-  ).toFixed(3);
+    addresses.length * 0.03 
+    + Math.ceil(addresses.length / 6) * 0.12
+    + 0.05
+  )
 
   const { transferMenu, basicUrl } = transferTONMenu(
     receiverAddress,

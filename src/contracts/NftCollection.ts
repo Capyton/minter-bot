@@ -99,7 +99,7 @@ export class NftCollection {
     wallet: OpenedWallet
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
-    const amount = (0.03 * params.length + 0.15).toFixed(3);
+    const amount = (0.03 * params.length + 0.12).toFixed(3);
     await wallet.contract.sendTransfer({
       seqno,
       secretKey: wallet.keyPair.secretKey,
