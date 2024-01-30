@@ -72,5 +72,5 @@ export const mintItems = async (
     }
   }
 
-  await ctx.reply(`${addresses.length} SBT items are successfully minted`);
+  await ctx.reply(`<a href="https://getgems.io/collection/${collectionAddress.toString({urlSafe: true})}">${addresses.length} SBT items are successfully minted</a>`, { parse_mode: "HTML" });
 };
