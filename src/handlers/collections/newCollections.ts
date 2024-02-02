@@ -292,6 +292,8 @@ export const newCollection = async (
 
   const collection = await mintCollection(ctx, collectionData);
 
+  await ctx.reply('Start minting SBT items...');
+
   await mintItems(ctx, addresses, collection.address);
 
   await ctx.reply('Would you like to continue?', {
