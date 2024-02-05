@@ -226,7 +226,7 @@ export const mintNewTemplateItem = async (
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
-  await ctx.editMessageText('Start minting...', {
+  await ctx.reply('Start minting...', {
     reply_markup: new InlineKeyboard(),
   });
 

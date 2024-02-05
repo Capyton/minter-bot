@@ -50,7 +50,7 @@ export const mintNewFootstepSbt = async (
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
-  await ctx.editMessageText('Start minting...', {
+  await ctx.reply('Start minting...', {
     reply_markup: new InlineKeyboard(),
   });
   const metadataFilename = `${footstepIndex}.json`;
