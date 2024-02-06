@@ -21,11 +21,18 @@ export const parseAddresses = async (text: string): Promise<Address[]> => {
   const addressesString: Set<string> = new Set();
   const addresses: Address[] = [];
   for (let stringAddress of text.split('\n')) {
-    if (isAddress(stringAddress) || stringAddress.endsWith('.ton') || stringAddress.endsWith('.t.me')) {
+    if (
+      isAddress(stringAddress) ||
+      stringAddress.endsWith('.ton') ||
+      stringAddress.endsWith('.t.me')
+    ) {
       if (stringAddress.endsWith('.ton') || stringAddress.endsWith('.t.me')) {
-        const response = await fetch(`https://tonapi.io/v2/dns/${stringAddress}/resolve`, {headers: {"Authorization": `Bearer ${process.env.TONAPI_API_KEY}`}});
+        const response = await fetch(
+          `https://tonapi.io/v2/dns/${stringAddress}/resolve`,
+          { headers: { Authorization: `Bearer ${process.env.TONAPI_API_KEY}` } }
+        );
         const dnsResolved = await response.json();
-        if (dnsResolved["error"]) {
+        if (dnsResolved['error']) {
           continue;
         }
         stringAddress = dnsResolved.wallet.address;
