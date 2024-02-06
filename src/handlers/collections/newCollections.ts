@@ -232,7 +232,6 @@ export const newCollection = async (
   });
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
   await ctx.reply('Start minting...', {

@@ -11,6 +11,7 @@ declare namespace NodeJS {
 
     readonly MNEMONIC: string;
     readonly TONCENTER_API_KEY: string;
+    readonly TONAPI_API_KEY: string;
 
     readonly ACCESS_KEY_ID: string;
     readonly SECRET_ACCESS_KEY: string;

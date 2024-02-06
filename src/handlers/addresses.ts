@@ -17,12 +17,19 @@ export function isAddress(address: string) {
   }
 }
 
-export const parseAddresses = (text: string): Address[] => {
+export const parseAddresses = async (text: string): Promise<Address[]> => {
   const addressesString: Set<string> = new Set();
   const addresses: Address[] = [];
-
-  for (const stringAddress of text.split('\n')) {
-    if (isAddress(stringAddress)) {
+  for (let stringAddress of text.split('\n')) {
+    if (isAddress(stringAddress) || stringAddress.endsWith('.ton') || stringAddress.endsWith('.t.me')) {
+      if (stringAddress.endsWith('.ton') || stringAddress.endsWith('.t.me')) {
+        const response = await fetch(`https://tonapi.io/v2/dns/${stringAddress}/resolve`, {headers: {"Authorization": `Bearer ${process.env.TONAPI_API_KEY}`}});
+        const dnsResolved = await response.json();
+        if (dnsResolved["error"]) {
+          continue;
+        }
+        stringAddress = dnsResolved.wallet.address;
+      }
       const address = Address.parse(stringAddress);
       if (!addressesString.has(address.toRawString())) {
         addressesString.add(address.toRawString());
@@ -92,10 +99,10 @@ EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2
     const addressesFromFile = await fs.readFile(
       path.join(pathname, 'addresses')
     );
-    return parseAddresses(addressesFromFile.toString());
+    return await parseAddresses(addressesFromFile.toString());
   } else if (responseCtx.message?.text) {
     const addressesText = responseCtx.message.text;
-    return parseAddresses(addressesText);
+    return await parseAddresses(addressesText);
   }
 
   return await getAddresses(conversation, ctx);

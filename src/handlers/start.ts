@@ -1,5 +1,6 @@
 import { Context } from '@/types';
 import { baseFlowMenu } from '@/menus';
+import { User } from '@/db';
 
 export const anonymousHelpHandler = async (ctx: Context) =>
   await ctx.reply(
@@ -40,5 +41,14 @@ Note: you can get user's telegram id in @username_to_id_bot if needed.
 export const cancelHandler = async (ctx: Context) => {
   await ctx.conversation.exit();
   await ctx.deleteMessage();
-  await ctx.reply('Canceled.', { reply_markup: baseFlowMenu });
+
+  const user = await ctx.queryRunner.manager.findOneBy(User, {
+    user_id: ctx.from?.id,
+  });
+
+  if (Boolean(user) || ctx.config.isAdmin) {
+    await ctx.reply('Canceled.', { reply_markup: baseFlowMenu });
+  } else {
+    await ctx.reply('Canceled.');
+  }
 };
