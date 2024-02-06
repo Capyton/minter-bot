@@ -37,7 +37,7 @@ export async function createItemMetadataFile(
       folderName
     );
   }
-  let metadata = {};
+  let metadata: any = {};
   if (itemImageFilename.includes('.mp4')) {
     metadata = {
       image: collectionImage,
@@ -53,6 +53,12 @@ export async function createItemMetadataFile(
       name: itemsData.name,
     };
   }
+  metadata['buttons'] = [
+    {
+      label: 'Open in TON Society',
+      uri: 'https://society.ton.org',
+    },
+  ];
   const metadataContent = Buffer.from(JSON.stringify(metadata));
   const fileURL = await uploadFileToS3(
     metadataContent,
