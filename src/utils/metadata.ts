@@ -56,7 +56,7 @@ export async function createItemMetadataFile(
   metadata['buttons'] = [
     {
       label: 'Open in TON Society',
-      uri: 'https://society.ton.org',
+      uri: 'https://society.ton.org/welcome',
     },
   ];
   const metadataContent = Buffer.from(JSON.stringify(metadata));
