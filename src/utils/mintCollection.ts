@@ -1,6 +1,6 @@
 import { Address } from 'ton-core';
 import { CollectionData, NftCollection } from '@/contracts/NftCollection';
-import { sleep, waitSeqno } from '@/utils/delay';
+import { callForSuccess, sleep, waitSeqno } from '@/utils/delay';
 import { openWallet } from '@/utils/wallet';
 import { Context } from '@/types';
 import { tonClient } from './toncenter-client';
@@ -12,7 +12,7 @@ export const mintCollection = async (
   const minterWallet = await openWallet();
   const collection = new NftCollection(collectionData, minterWallet, tonClient);
 
-  const seqno = await collection.deploy();
+  const seqno = await callForSuccess(async () => await collection.deploy());
   await waitSeqno(seqno, minterWallet);
 
   await ctx.reply(

@@ -82,7 +82,7 @@ export const getAddresses = async (
 
 Or just send a text with the addresses separated by a new line.
 
-<b>Note that you can't send more than 82 addresses using simple text message.</b>
+<b>Note that you can't send more than 80 addresses using simple text message!</b>
 
 See an example of a correct text message with addresses below:`;
 

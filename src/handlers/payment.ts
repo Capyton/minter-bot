@@ -19,7 +19,7 @@ export const startPaymentFlow = async (
     0.05
   ).toFixed(3);
 
-  const currentBalance = fromNano(await wallet.contract.getBalance());
+  let currentBalance = fromNano(await wallet.contract.getBalance());
 
   if (parseFloat(currentBalance) > parseFloat(tonAmount)) {
     return ctx;
@@ -31,16 +31,25 @@ export const startPaymentFlow = async (
   );
   const qrcodeBuffer = await generateQRCode(basicUrl);
 
-  await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
+  const paymentInfoMsg = await ctx.replyWithPhoto(new InputFile(qrcodeBuffer), {
     caption: `It remains just to replenish the wallet, to do this send ${tonAmount} TON to the <code>${receiverAddress.toString()}</code> by clicking the button below.`,
     parse_mode: 'HTML',
     reply_markup: transferMenu,
   });
 
-  await ctx.reply('Click this button when you send the transaction', {
+  const confirmPayment = await ctx.reply('Click this button when you send the transaction', {
     reply_markup: transactionSentMenu,
   });
+  
+  while ((parseFloat(currentBalance) + parseFloat("0.1")) <= parseFloat(tonAmount)) {
+    ctx = await conversation.waitForCallbackQuery('transaction-sent');  
+    currentBalance = fromNano(await wallet.contract.getBalance());
 
-  ctx = await conversation.waitForCallbackQuery('transaction-sent');
+    if ((parseFloat(currentBalance) + parseFloat("0.1")) <= parseFloat(tonAmount)) {
+      await ctx.answerCallbackQuery('I haven\'t received your payment! Try to wait ~1 minute, if you actually sent transaction.')
+    } 
+  }
+  await paymentInfoMsg.delete();
+  await confirmPayment.delete();
   return ctx;
 };
