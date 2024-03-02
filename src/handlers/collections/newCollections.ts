@@ -122,7 +122,7 @@ export const newEmptyCollection = async (
   });
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard()});
+  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
   ctx = await startPaymentFlow(conversation, ctx);
 
   await ctx.reply('Start minting...', {
@@ -233,7 +233,7 @@ export const newCollection = async (
   });
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard()});
+  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
   await ctx.reply('Start minting...', {

@@ -37,17 +37,28 @@ export const startPaymentFlow = async (
     reply_markup: transferMenu,
   });
 
-  const confirmPayment = await ctx.reply('Click this button when you send the transaction', {
-    reply_markup: transactionSentMenu,
-  });
-  
-  while ((parseFloat(currentBalance) + parseFloat("0.1")) <= parseFloat(tonAmount)) {
-    ctx = await conversation.waitForCallbackQuery('transaction-sent');  
+  const confirmPayment = await ctx.reply(
+    'Click this button when you send the transaction',
+    {
+      reply_markup: transactionSentMenu,
+    }
+  );
+
+  while (
+    parseFloat(currentBalance) + parseFloat('0.1') <=
+    parseFloat(tonAmount)
+  ) {
+    ctx = await conversation.waitForCallbackQuery('transaction-sent');
     currentBalance = fromNano(await wallet.contract.getBalance());
 
-    if ((parseFloat(currentBalance) + parseFloat("0.1")) <= parseFloat(tonAmount)) {
-      await ctx.answerCallbackQuery('I haven\'t received your payment! Try to wait ~1 minute, if you actually sent transaction.')
-    } 
+    if (
+      parseFloat(currentBalance) + parseFloat('0.1') <=
+      parseFloat(tonAmount)
+    ) {
+      await ctx.answerCallbackQuery(
+        "I haven't received your payment! Try to wait ~1 minute, if you actually sent transaction."
+      );
+    }
   }
   await paymentInfoMsg.delete();
   await confirmPayment.delete();

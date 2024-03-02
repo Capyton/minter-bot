@@ -48,7 +48,7 @@ export const mintItemsByNewData = async (
   });
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard()});
+  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
   await ctx.reply('Start minting...', {
@@ -61,7 +61,7 @@ export const mintItemsByNewData = async (
   const imageFilename = randomUUID() + fileType;
   const imagePathname = await downloadFile(
     contentCtx,
-    contentCtx.message?.document ? 'document' : 'photo', 
+    contentCtx.message?.document ? 'document' : 'photo',
     imageFilename
   );
 
