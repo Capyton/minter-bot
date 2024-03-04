@@ -15,7 +15,7 @@ export const startPaymentFlow = async (
 
   const tonAmount = (
     addresses.length * 0.03 +
-    Math.ceil(addresses.length / 6) * 0.12 +
+    Math.ceil(addresses.length / 6) * 0.33 +
     0.05
   ).toFixed(3);
 
