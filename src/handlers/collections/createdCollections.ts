@@ -146,6 +146,7 @@ export const mintItemsByPreviousData = async (
   }
 
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
+  await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
   ctx = await startPaymentFlow(conversation, ctx, addresses);
 
   await ctx.reply('Start minting...', {
