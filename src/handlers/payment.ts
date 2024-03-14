@@ -13,10 +13,7 @@ export const startPaymentFlow = async (
   const wallet = await openWallet();
   const receiverAddress = wallet.contract.address.toString();
 
-  const tonAmount = (
-    addresses.length * 0.05 +
-    0.05
-  ).toFixed(3);
+  const tonAmount = (addresses.length * 0.05 + 0.05).toFixed(3);
 
   let currentBalance = fromNano(await wallet.contract.getBalance());
 
