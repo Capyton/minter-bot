@@ -48,8 +48,8 @@ export const mintItems = async (
 
   const chunks = [];
 
-  for (let i = 0; i < addresses.length; i += 6) {
-    const chunk = items.slice(i, i + 6);
+  for (let i = 0; i < addresses.length; i += 100) {
+    const chunk = items.slice(i, i + 100);
 
     chunks.push(chunk);
   }
