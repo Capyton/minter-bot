@@ -15,7 +15,7 @@ export const getDataSource = (config: DatabaseConfig): DataSource => {
     username: config.user,
     password: config.password,
     database: config.database,
-    synchronize: true,
+    synchronize: false,
     logging: true,
     subscribers: [],
     migrations: [],
