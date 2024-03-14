@@ -30,8 +30,8 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  user_id: number;
+  @Column({ unique: true, type: "bigint" })
+  user_id: string;
 
   @Column({ nullable: true, type: 'varchar', default: null })
   username: string | null;
@@ -57,8 +57,8 @@ export class Template extends BaseEntity {
   @Column({ type: 'varchar' })
   itemContentURL: string;
 
-  @Column('int', { array: true })
-  userIds: number[];
+  @Column({ array: true, type: "bigint" })
+  userIds: string[];
 
   @Column('bool', { nullable: true })
   has_parameters: boolean;

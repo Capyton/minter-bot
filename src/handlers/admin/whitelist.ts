@@ -7,7 +7,7 @@ export const addUserToWhitelist = async (ctx: Context) => {
   const userId = ctx.message!.text!.split(' ')[1];
   const pattern = /^\d+$/;
   if (pattern.test(userId)) {
-    user.user_id = Number(userId);
+    user.user_id = userId;
 
     await user.save();
 
@@ -26,7 +26,7 @@ export const deleteUserFromWhitelist = async (ctx: Context) => {
   const pattern = /^\d+$/;
 
   if (pattern.test(userId)) {
-    const user = await User.findOneBy({ user_id: Number(userId) });
+    const user = await User.findOneBy({ user_id: userId });
 
     if (user === null) {
       await ctx.reply('User is not found');

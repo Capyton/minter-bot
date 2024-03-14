@@ -124,7 +124,7 @@ export const createNewTemplate = async (
   template.itemContentURL = itemContentURL;
   template.itemDescription = description;
   template.itemName = name;
-  template.userIds = userIds.map((value) => Number(value));
+  template.userIds = userIds;
   template.collectionAddress = collectionAddress.toRawString();
   template.has_parameters = name.includes('$') || description.includes('$');
 
@@ -170,7 +170,7 @@ export const mintNewTemplateItem = async (
     : ctx.message?.from.id;
   const templates = await Template.find();
   const infoMsg = await ctx.reply('Choose template:', {
-    reply_markup: templatesMenu(templates, userId!),
+    reply_markup: templatesMenu(templates, userId!.toString()),
   });
 
   const templateCtx = await conversation.waitForCallbackQuery(/^template-/);

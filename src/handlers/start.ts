@@ -43,7 +43,7 @@ export const cancelHandler = async (ctx: Context) => {
   await ctx.deleteMessage();
 
   const user = await ctx.queryRunner.manager.findOneBy(User, {
-    user_id: ctx.from?.id,
+    user_id: ctx.from?.id.toString(),
   });
 
   if (Boolean(user) || ctx.config.isAdmin) {

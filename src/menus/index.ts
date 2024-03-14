@@ -22,13 +22,13 @@ export const baseFlowMenu = new InlineKeyboard()
   // .row()
   .text('Cancel', 'cancel');
 
-export const templatesMenu = (templates: Template[], userId: number) => {
+export const templatesMenu = (templates: Template[], userId: string) => {
   const menu = new InlineKeyboard();
   const config = loadConfigFromEnv();
   for (const template of templates) {
     if (
       template.userIds.includes(userId) ||
-      userId === Number(config.bot.adminId)
+      Number(userId) === Number(config.bot.adminId)
     ) {
       menu.text(template.name, `template-${template.id}`).row();
     }
