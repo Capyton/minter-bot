@@ -42,9 +42,7 @@ export const cancelHandler = async (ctx: Context) => {
   await ctx.conversation.exit();
   await ctx.deleteMessage();
 
-  const user = await ctx.queryRunner.manager.findOneBy(User, {
-    user_id: ctx.from?.id.toString(),
-  });
+  const user = await User.findOneBy( {user_id: ctx.from?.id.toString()} )
 
   if (Boolean(user) || ctx.config.isAdmin) {
     await ctx.reply('Canceled.', { reply_markup: baseFlowMenu });

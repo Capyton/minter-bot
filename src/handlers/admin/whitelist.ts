@@ -45,7 +45,7 @@ export const deleteUserFromWhitelist = async (ctx: Context) => {
 };
 
 export const showWhitelist = async (ctx: Context) => {
-  const users = await ctx.queryRunner.manager.find(User);
+  const users = await User.find();
 
   if (users.length === 0) {
     await ctx.reply('Users whitelist is empty');
