@@ -1,5 +1,4 @@
 import { InlineKeyboard } from 'grammy';
-import { toNano } from 'ton-core';
 import { loadConfigFromEnv } from '@/config';
 import { Template } from '@/db';
 
@@ -63,8 +62,10 @@ export const transferTONMenu = (receiver: string, amount: bigint) => {
 
 export const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');
 
-export const transactionSentMenu = new InlineKeyboard()
-  .text('I sent transaction', 'transaction-sent');
+export const transactionSentMenu = new InlineKeyboard().text(
+  'I sent transaction',
+  'transaction-sent'
+);
 
 export const tutorialsMenu = new InlineKeyboard()
   .url('How to create an SBT collection?', 'https://youtu.be/Jj-zh9aJZMQ')

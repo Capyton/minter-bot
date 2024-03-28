@@ -224,7 +224,12 @@ export const mintNewTemplateItem = async (
     reply_markup: confirmMintingMenu,
   });
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
-  ctx = await startPaymentFlow(conversation, ctx, addresses, Address.parse(template.collectionAddress));
+  ctx = await startPaymentFlow(
+    conversation,
+    ctx,
+    addresses,
+    Address.parse(template.collectionAddress)
+  );
 
   await ctx.reply('Start minting...', {
     reply_markup: new InlineKeyboard(),

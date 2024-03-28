@@ -100,7 +100,10 @@ export class NftCollection {
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
 
-    const totalAmount = await this.getBatchMintingFeesAmount(address, params.length)
+    const totalAmount = await this.getBatchMintingFeesAmount(
+      address,
+      params.length
+    );
 
     await wallet.contract.sendTransfer({
       seqno,
@@ -297,12 +300,16 @@ export class NftCollection {
     return seqno;
   }
 
-  static async getBatchMintingFeesAmount(collectionAddress: Address, batchSize: number): Promise<bigint> {
+  static async getBatchMintingFeesAmount(
+    collectionAddress: Address,
+    batchSize: number
+  ): Promise<bigint> {
     const feesAmount = toNano('0.02') * BigInt(batchSize);
     let mintAmount = toNano('0.02') * BigInt(batchSize);
 
-    let collectionBalance = await tonClient.getBalance(collectionAddress) - toNano('0.3');
-    
+    const collectionBalance =
+      (await tonClient.getBalance(collectionAddress)) - toNano('0.3');
+
     if (collectionBalance > mintAmount) {
       mintAmount = 0n;
     } else if (collectionBalance > 0) {
