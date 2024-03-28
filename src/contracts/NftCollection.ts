@@ -99,13 +99,15 @@ export class NftCollection {
     wallet: OpenedWallet
   ): Promise<number> {
     const seqno = await wallet.contract.getSeqno();
-    const amount = (0.05 * params.length).toFixed(3);
+
+    const totalAmount = await this.getBatchMintingFeesAmount(address, params.length)
+
     await wallet.contract.sendTransfer({
       seqno,
       secretKey: wallet.keyPair.secretKey,
       messages: [
         internal({
-          value: amount.toString(),
+          value: totalAmount,
           to: address,
           body: this.createBatchMintBody({ items: params }),
         }),
@@ -293,6 +295,20 @@ export class NftCollection {
       sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
     });
     return seqno;
+  }
+
+  static async getBatchMintingFeesAmount(collectionAddress: Address, batchSize: number): Promise<bigint> {
+    const feesAmount = toNano('0.02') * BigInt(batchSize);
+    let mintAmount = toNano('0.02') * BigInt(batchSize);
+
+    let collectionBalance = await tonClient.getBalance(collectionAddress) - toNano('0.3');
+    
+    if (collectionBalance > mintAmount) {
+      mintAmount = 0n;
+    } else if (collectionBalance > 0) {
+      mintAmount -= collectionBalance;
+    }
+    return feesAmount + mintAmount;
   }
 
   public get stateInit(): StateInit {

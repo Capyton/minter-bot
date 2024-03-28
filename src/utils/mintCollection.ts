@@ -38,7 +38,7 @@ export const mintItems = async (
   for (const address of addresses) {
     items.push({
       index: i,
-      passAmount: '0.03',
+      passAmount: '0.02',
       ownerAddress: address,
       content: contentUrl,
       authorityAddress: minterWallet.contract.address,

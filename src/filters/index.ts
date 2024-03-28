@@ -4,7 +4,7 @@ import { Template, User } from '@/db';
 export const adminUser = (ctx: Context) => ctx.config.isAdmin;
 
 export const knownUser = async (ctx: Context) => {
-  const user = await User.findOneBy({user_id: ctx.from?.id.toString(),})
+  const user = await User.findOneBy({ user_id: ctx.from?.id.toString() });
   return Boolean(user);
 };
 

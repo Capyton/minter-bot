@@ -49,7 +49,7 @@ export const mintNewFootstepSbt = async (
   });
   ctx = await conversation.waitForCallbackQuery('confirm-minting');
   await ctx.editMessageReplyMarkup({ reply_markup: new InlineKeyboard() });
-  ctx = await startPaymentFlow(conversation, ctx, addresses);
+  ctx = await startPaymentFlow(conversation, ctx, addresses, collectionAddress);
 
   await ctx.reply('Start minting...', {
     reply_markup: new InlineKeyboard(),

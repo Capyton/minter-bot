@@ -51,8 +51,8 @@ export const confirmMintingMenu = new InlineKeyboard()
   .row()
   .text('cancel', 'cancel');
 
-export const transferTONMenu = (receiver: string, amount: string) => {
-  const baseText = `transfer/${receiver}?amount=${toNano(amount)}`;
+export const transferTONMenu = (receiver: string, amount: bigint) => {
+  const baseText = `transfer/${receiver}?amount=${amount}`;
   const menu = new InlineKeyboard()
     .url('Tonkeeper', `https://app.tonkeeper.com/${baseText}`)
     .url('TonHub', `https://tonhub.com/${baseText}`)
@@ -64,8 +64,7 @@ export const transferTONMenu = (receiver: string, amount: string) => {
 export const cancelMenu = new InlineKeyboard().text('Cancel', 'cancel');
 
 export const transactionSentMenu = new InlineKeyboard()
-  .text('I sent transaction', 'transaction-sent')
-  .row();
+  .text('I sent transaction', 'transaction-sent');
 
 export const tutorialsMenu = new InlineKeyboard()
   .url('How to create an SBT collection?', 'https://youtu.be/Jj-zh9aJZMQ')
