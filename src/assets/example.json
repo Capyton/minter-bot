@@ -1,0 +1,13 @@
+{
+  "common_values": {
+    "cakes": "yes"
+  },
+  "specific_values": {
+    "UQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqEBI": {
+      "name": "omg its working", 
+      "shop": {
+        "cakes": "no"
+      }
+    }
+  }
+}

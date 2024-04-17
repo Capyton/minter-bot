@@ -21,6 +21,11 @@ export const baseFlowMenu = new InlineKeyboard()
   // .row()
   .text('Cancel', 'cancel');
 
+export const confirmCustomMetaMenu = new InlineKeyboard()
+  .text('Yes', 'confirm-custom-meta')
+  .row()
+  .text('No', 'decline-custom-meta');
+
 export const templatesMenu = (templates: Template[], userId: string) => {
   const menu = new InlineKeyboard();
   const config = loadConfigFromEnv();

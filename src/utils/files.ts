@@ -23,7 +23,7 @@ export const getFileId = (ctx: Context, type: FileType): string => {
   return '';
 };
 
-const getFileUrl = (filePath: string) =>
+export const getFileUrl = (filePath: string) =>
   `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${escape(
     filePath
   )}`;

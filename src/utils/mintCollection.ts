@@ -4,6 +4,9 @@ import { callForSuccess, sleep, waitSeqno } from '@/utils/delay';
 import { openWallet } from '@/utils/wallet';
 import { Context } from '@/types';
 import { tonClient } from './toncenter-client';
+import { uploadFileToS3 } from './files';
+import { UUID } from 'typeorm/driver/mongodb/bson.typings';
+import { randomUUID } from 'crypto';
 
 export const mintCollection = async (
   ctx: Context,
@@ -26,21 +29,31 @@ export const mintItems = async (
   ctx: Context,
   addresses: Address[],
   collectionAddress: Address,
-  startIndex = 0,
-  contentUrl = 'item.json'
+  startIndex = 0, 
+  contentUrl: string, 
+  specificUsersMetadataUrl?: any 
 ) => {
   const minterWallet = await openWallet();
 
   const items = [];
 
+  console.log(specificUsersMetadataUrl, 'in function')
   let i = startIndex;
+  let customMetadataUrl;
 
   for (const address of addresses) {
+    customMetadataUrl = undefined;
+    console.log(address.toRawString(), specificUsersMetadataUrl.hasOwnProperty(address.toRawString()))
+    if (specificUsersMetadataUrl && specificUsersMetadataUrl.hasOwnProperty(address.toRawString())) {
+      customMetadataUrl = specificUsersMetadataUrl[address.toRawString()];
+      console.log(customMetadataUrl, 666)
+    }
+    
     items.push({
       index: i,
       passAmount: '0.02',
       ownerAddress: address,
-      content: contentUrl,
+      content: customMetadataUrl ?? contentUrl,
       authorityAddress: minterWallet.contract.address,
     });
     i++;

@@ -32,6 +32,12 @@ export type CollectionMintItemInput = {
   authorityAddress: Address;
 };
 
+export type NftMetadataType = {
+  description: string, 
+  name: string, 
+  image: string
+}
+
 const MintDictValue: DictionaryValue<CollectionMintItemInput> = {
   serialize(src, builder) {
     const nftItemMessage = beginCell();
@@ -228,9 +234,9 @@ export class NftCollection {
     const metadataURL =
       commonContent.loadStringTail() +
       lastNftContent.beginParse().loadStringTail();
-
+    
     const response = await fetch(metadataURL);
-    const metadata = await response.json();
+    const metadata: NftMetadataType = await response.json();
 
     return { metadata, metadataURL };
   }
