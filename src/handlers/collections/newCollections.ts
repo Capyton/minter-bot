@@ -8,17 +8,22 @@ import { Address } from 'ton-core';
 import { Context, Conversation } from '@/types';
 import { downloadFile, uploadFileToS3 } from '@/utils/files';
 import { mintCollection, mintItems } from '@/utils/mintCollection';
-import { baseFlowMenu, cancelMenu, confirmCustomMetaMenu, confirmMintingMenu } from '@/menus';
+import {
+  baseFlowMenu,
+  cancelMenu,
+  confirmCustomMetaMenu,
+  confirmMintingMenu,
+} from '@/menus';
 import {
   createCollectionMetadata,
   createItemMetadataFile,
 } from '@/utils/metadata';
 import { openWallet } from '@/utils/wallet';
+import { sleep } from '@/utils/delay';
 import { getAddresses } from '../addresses';
 import { startPaymentFlow } from '../payment';
-import { newItem } from './newItem';
 import { getCustomMetadata } from '../customMetadata';
-import { sleep } from '@/utils/delay';
+import { newItem } from './newItem';
 
 export const messageTemplate = (
   entity: string,
@@ -225,12 +230,18 @@ export const newCollection = async (
 
   const addresses = await getAddresses(conversation, ctx);
 
-  const confirmCustomMetaCtx = await ctx.reply(`Do you wanna use custom metadata?`, { reply_markup: confirmCustomMetaMenu });
-  const userCustomMetaConfirmationCtx =  await conversation.waitForCallbackQuery(['confirm-custom-meta', 'decline-custom-meta']);
+  const confirmCustomMetaCtx = await ctx.reply(
+    'Do you wanna use custom metadata?',
+    { reply_markup: confirmCustomMetaMenu }
+  );
+  const userCustomMetaConfirmationCtx = await conversation.waitForCallbackQuery(
+    ['confirm-custom-meta', 'decline-custom-meta']
+  );
 
   await confirmCustomMetaCtx.delete();
 
-  let useCustomMeta = userCustomMetaConfirmationCtx.callbackQuery.data === 'confirm-custom-meta';
+  const useCustomMeta =
+    userCustomMetaConfirmationCtx.callbackQuery.data === 'confirm-custom-meta';
 
   let customMetadataJson: any;
   if (useCustomMeta) {
@@ -309,37 +320,51 @@ export const newCollection = async (
 
   await ctx.reply('Start minting SBT items...');
 
-  let splittedUrl = itemContentUrl.split('/')
+  const splittedUrl = itemContentUrl.split('/');
   let basicItemContentFilename = splittedUrl[splittedUrl.length - 1];
   let basicItemContent = await (await fetch(itemContentUrl)).json();
   const collectionMetadataFolder = splittedUrl[splittedUrl.length - 2];
-
-  
   if (customMetadataJson && customMetadataJson.common_values) {
-    basicItemContent = {...basicItemContent, ...customMetadataJson.common_values};
+    basicItemContent = {
+      ...basicItemContent,
+      ...customMetadataJson.common_values,
+    };
     basicItemContentFilename = randomUUID() + '.json';
-    await uploadFileToS3(Buffer.from(JSON.stringify(basicItemContent)), basicItemContentFilename, collectionMetadataFolder);
+    await uploadFileToS3(
+      Buffer.from(JSON.stringify(basicItemContent)),
+      basicItemContentFilename,
+      collectionMetadataFolder
+    );
   }
 
-  let specificUsersMetadataUrl: any = {}, usersProceesed = 0, totalUsers = 0;
+  let usersProceesed = 0,
+    totalUsers = 0;
+  const specificUsersMetadataUrl: any = {};
   if (customMetadataJson && customMetadataJson.specific_values) {
     const specificUsers = Object.keys(customMetadataJson.specific_values);
     totalUsers = specificUsers.length;
 
     specificUsers.forEach(async (value) => {
-      let specificUserMetadata = {...basicItemContent, ...customMetadataJson.specific_values[value]}
+      const specificUserMetadata = {
+        ...basicItemContent,
+        ...customMetadataJson.specific_values[value],
+      };
       const specificItemContentFilename = randomUUID() + '.json';
-      
-      await uploadFileToS3(Buffer.from(JSON.stringify(specificUserMetadata)), specificItemContentFilename, collectionMetadataFolder);
+
+      await uploadFileToS3(
+        Buffer.from(JSON.stringify(specificUserMetadata)),
+        specificItemContentFilename,
+        collectionMetadataFolder
+      );
       specificUsersMetadataUrl[value] = specificItemContentFilename;
       usersProceesed++;
-      console.log('wow shit')
-    })
+      console.log('wow shit');
+    });
   }
   while (usersProceesed !== totalUsers) {
     await sleep(1000);
   }
-  
+
   await mintItems(
     ctx,
     addresses,
@@ -352,5 +377,4 @@ export const newCollection = async (
   await ctx.reply('Would you like to continue?', {
     reply_markup: baseFlowMenu,
   });
-  
 };

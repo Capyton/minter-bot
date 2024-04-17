@@ -1,7 +1,7 @@
-import { Context, Conversation } from '@/types';
-import { getFileId, getFileUrl } from '@/utils/files';
 import { InputFile } from 'grammy';
 import { Address } from 'ton-core';
+import { Context, Conversation } from '@/types';
+import { getFileId, getFileUrl } from '@/utils/files';
 
 export type customMetadataType = {
   common_values: any;
@@ -13,7 +13,8 @@ export const getCustomMetadata = async (
   ctx: Context
 ): Promise<customMetadataType> => {
   await ctx.replyWithDocument(new InputFile('./src/assets/example.json'), {
-    caption: `Send the json file with the custom metadata: (see an example of correct json above)`,
+    caption:
+      'Send the json file with the custom metadata: (see an example of correct json above)',
   });
   const metadataCtx = await conversation.waitFor(':file');
 
@@ -61,11 +62,11 @@ function parseCustomMetadata(
     if (typeof key !== 'string') {
       return;
     }
-    
+
     customMetadataJson.specific_values[Address.parse(key).toRawString()] =
       customMetadataJson.specific_values[key];
     delete customMetadataJson.specific_values[key];
-    });
-  console.log(customMetadataJson, ' custom metadata json parsed')
+  });
+  console.log(customMetadataJson, ' custom metadata json parsed');
   return customMetadataJson;
 }
